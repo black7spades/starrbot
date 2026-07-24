@@ -129,7 +129,7 @@ async function checkAllFeeds() {
   await Promise.all(ALL_FEEDS.map(feed => checkFeed(feed, channel)));
 }
 
-client.once('ready', () => {
+client.once('clientReady', (c) => {
   console.log(`Logged in as ${client.user.tag}`);
   console.log(`Monitoring ${ALL_FEEDS.length} feeds every ${CHECK_INTERVAL} minutes`);
 
