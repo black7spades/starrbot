@@ -1,0 +1,15 @@
+services:
+  bot:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      - rsshub
+
+  rsshub:
+    image: diygod/rsshub
+    restart: unless-stopped
+    environment:
+      - CACHE_TYPE=memory
+    ports:
+      - "1200:1200"
