@@ -153,6 +153,7 @@ Other examples:
 ```
 !addfeed /tiktok/user/username
 !addfeed /instagram/user/natgeo
+!addfeed /twitch/user/shroud
 !addfeed https://www.youtube.com/feeds/videos.xml?channel_id=UC_x5XG1OV2P6uZZ5FSM9Ttw
 ```
 
