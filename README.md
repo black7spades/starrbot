@@ -46,8 +46,8 @@ SSH into your server and run:
 
 ```bash
 cd /opt
-sudo git clone https://github.com/YOUR_USERNAME/Mkitty-Discord-Bot.git
-cd Mkitty-Discord-Bot
+sudo git clone https://github.com/black7spades/mkittybot.git
+cd mkittybot
 sudo cp .env .env.backup
 sudo nano .env
 ```
@@ -68,11 +68,13 @@ Save and exit: press `Ctrl+X` → `Y` → `Enter`
 
 ## Step 4: Deploy with Dockhand
 
+### First Time Setup
+
 1. Open Dockhand (usually at http://192.168.0.XX:8080)
 2. Go to **Stacks** or **Compose**
 3. Click **Add Stack** or **New Stack**
 4. Name it: `mkitty-bot`
-5. Set the **Working Directory** or **Source Path** to: `/opt/Mkitty-Discord-Bot`
+5. Set the **Working Directory** or **Source Path** to: `/opt/mkittybot`
 6. Click **Deploy** or **Start**
 
 Dockhand will read the `docker-compose.yml` and start both the bot and RSSHub containers.
@@ -81,12 +83,37 @@ To verify it's running:
 1. In Dockhand, find the `mkitty-bot-bot-1` container
 2. Click **Logs** — you should see: `Logged in as Mkitty#XXXX`
 
-If you prefer CLI instead:
+### Pulling Updates via Dockhand
+
+When you push changes to GitHub, pull them on your server:
+
+**Option A: Dockhand Terminal**
+1. In Dockhand, find your `mkittybot` stack or container
+2. Click **Terminal** or **Exec** (opens a shell inside the container)
+3. This won't work for git — you need the host terminal
+
+**Option B: Dockhand SSH / Host Terminal**
+1. In Dockhand, look for **Host** or **SSH** or **Terminal** tab (top menu or sidebar)
+2. This opens a terminal on the actual server
+3. Run these commands:
+   ```bash
+   cd /opt/mkittybot
+   sudo git pull
+   sudo docker compose down
+   sudo docker compose up -d
+   ```
+
+**Option C: SSH from your PC (easiest)**
+Open PowerShell or Terminal on your PC:
 ```bash
-cd /opt/Mkitty-Discord-Bot
-sudo docker compose up -d
-sudo docker compose logs bot
+ssh root@servalan.one
+cd /opt/mkittybot
+git pull
+docker compose down
+docker compose up -d
 ```
+
+After pulling, the bot and RSSHub containers restart with your latest code.
 
 ## Step 5: Expose RSSHub to the Internet
 
@@ -163,7 +190,7 @@ To see your feeds:
 
 **Bot doesn't respond:**
 - In Dockhand: find the bot container → click **Logs**
-- Or SSH and run: `sudo docker compose -f /opt/Mkitty-Discord-Bot/docker-compose.yml logs bot | tail -20`
+- Or SSH and run: `sudo docker compose -f /opt/mkittybot/docker-compose.yml logs bot | tail -20`
 
 **RSSHub not working:**
 ```bash
@@ -173,14 +200,14 @@ Should return HTML. If not, check Nginx Proxy Manager and Cloudflare.
 
 **Bot can't fetch feeds:**
 ```bash
-sudo docker compose -f /opt/Mkitty-Discord-Bot/docker-compose.yml exec bot wget -q -O- https://rsshub.servalan.one/tiktok/user/username
+sudo docker compose -f /opt/mkittybot/docker-compose.yml exec bot wget -q -O- https://rsshub.servalan.one/tiktok/user/username
 ```
 Should return XML. If not, RSSHub can't reach the internet.
 
 **Restart after changes:**
 - In Dockhand: find the container → click **Restart**
-- Or SSH: `sudo docker compose -f /opt/Mkitty-Discord-Bot/docker-compose.yml restart`
+- Or SSH: `sudo docker compose -f /opt/mkittybot/docker-compose.yml restart`
 
 **Stop everything:**
 - In Dockhand: find the stack → click **Stop** or **Delete**
-- Or SSH: `sudo docker compose -f /opt/Mkitty-Discord-Bot/docker-compose.yml down`
+- Or SSH: `sudo docker compose -f /opt/mkittybot/docker-compose.yml down`
