@@ -69,6 +69,7 @@ ADMIN_ROLE_ID=paste_your_admin_role_id_here
 RSSHUB_BASE_URL=https://rsshub.yourdomain.com
 CHECK_INTERVAL=15
 IG_COOKIE=sessionid=YOUR_SESSION_ID_HERE
+YOUTUBE_KEY=YOUR_YOUTUBE_API_KEY_HERE
 ```
 
 **How to get your Instagram session ID:**
@@ -76,6 +77,13 @@ IG_COOKIE=sessionid=YOUR_SESSION_ID_HERE
 2. Open Developer Tools (F12) → **Application** tab → **Cookies** → `https://www.instagram.com`
 3. Find `sessionid` → copy its value
 4. Paste it as `sessionid=YOUR_VALUE_HERE`
+
+**How to get your YouTube API key:**
+1. Go to https://console.cloud.google.com
+2. Create a project (or use existing)
+3. Go to **APIs & Services** → **Library** → enable **YouTube Data API v3**
+4. Go to **APIs & Services** → **Credentials** → **Create Credentials** → **API key**
+5. Copy the key
 
 Save and exit: press `Ctrl+X` → `Y` → `Enter`
 
