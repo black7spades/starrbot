@@ -72,11 +72,10 @@ IG_COOKIE=sessionid=YOUR_SESSION_ID_HERE
 YOUTUBE_KEY=YOUR_YOUTUBE_API_KEY_HERE
 ```
 
-**How to get your Instagram session ID:**
-1. Log into a **burner/secondary Instagram account** in your desktop browser (do NOT use your main account)
-2. Open Developer Tools (F12) → **Application** tab → **Cookies** → `https://www.instagram.com`
-3. Find `sessionid` → copy its value
-4. Paste it as `sessionid=YOUR_VALUE_HERE`
+**How to get your Instagram credentials:**
+1. Use a **burner/secondary Instagram account** (do NOT use your main account)
+2. 2FA is NOT supported — disable it on the burner account
+3. Set `IG_USERNAME` and `IG_PASSWORD` in `.env`
 
 **How to get your YouTube API key:**
 1. Go to https://console.cloud.google.com
