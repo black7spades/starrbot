@@ -68,19 +68,6 @@ ADMIN_CHANNEL_ID=paste_your_admin_channel_id_here
 ADMIN_ROLE_ID=paste_your_admin_role_id_here
 RSSHUB_BASE_URL=https://rsshub.yourdomain.com
 CHECK_INTERVAL=15
-```
-
-Save and exit: press `Ctrl+X` → `Y` → `Enter`
-
-Now create the RSSHub credentials file:
-
-```bash
-sudo nano .env.rsshub
-```
-
-Fill in your Instagram session cookie (for Instagram feeds):
-
-```
 IG_COOKIE=sessionid=YOUR_SESSION_ID_HERE
 ```
 
