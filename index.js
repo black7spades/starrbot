@@ -1,9 +1,9 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits, EmbedBuilder, ChannelType } = require('discord.js');
 const Parser = require('rss-parser');
-const cron = require('node-cron');
 const fs = require('fs');
 const path = require('path');
+const parser = new Parser();
 
 const client = new Client({
   intents: [
@@ -31,16 +31,6 @@ function loadFeeds() {
   try {
     return JSON.parse(fs.readFileSync(FEEDS_FILE, 'utf8'));
   } catch {
-    const envFeeds = [
-      ...(process.env.TIKTOK_FEEDS?.split(',').filter(Boolean) || []),
-      ...(process.env.INSTAGRAM_FEEDS?.split(',').filter(Boolean) || []),
-      ...(process.env.YOUTUBE_FEEDS?.split(',').filter(Boolean) || []),
-      ...(process.env.TWITTER_FEEDS?.split(',').filter(Boolean) || []),
-    ];
-    if (envFeeds.length) {
-      fs.writeFileSync(FEEDS_FILE, JSON.stringify(envFeeds, null, 2));
-      return envFeeds;
-    }
     return [];
   }
 }
@@ -133,7 +123,7 @@ client.once('clientReady', (c) => {
   console.log(`Logged in as ${client.user.tag}`);
   console.log(`Monitoring ${ALL_FEEDS.length} feeds every ${CHECK_INTERVAL} minutes`);
 
-  cron.schedule(`*/${CHECK_INTERVAL} * * * *`, checkAllFeeds);
+  setInterval(checkAllFeeds, CHECK_INTERVAL * 60 * 1000);
   checkAllFeeds();
 });
 
