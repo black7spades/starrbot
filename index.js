@@ -13,7 +13,6 @@ const client = new Client({
   ]
 });
 
-const parser = new Parser();
 const postedUrls = new Set();
 // ponytail: flat stats object, not a class — one instance, no behavior
 const stats = { postsSent: 0, errors: [], lastCheck: null };
