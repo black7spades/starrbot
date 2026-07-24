@@ -11,6 +11,8 @@ services:
   rsshub:
     image: diygod/rsshub
     restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     environment:
       - CACHE_TYPE=memory
     ports:
