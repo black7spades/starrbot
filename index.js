@@ -60,7 +60,6 @@ function getPlatformFromUrl(url) {
   if (url.includes('tiktok')) return { name: 'TikTok', color: 0x000000, icon: '🎵' };
   if (url.includes('instagram')) return { name: 'Instagram', color: 0xE4405F, icon: '📸' };
   if (url.includes('youtube') || url.includes('youtu.be')) return { name: 'YouTube', color: 0xFF0000, icon: '▶️' };
-  if (url.includes('twitter') || url.includes('x.com') || url.includes('nitter')) return { name: 'Twitter/X', color: 0x1DA1F2, icon: '🐦' };
   return { name: 'Social', color: 0x5865F2, icon: '🔗' };
 }
 

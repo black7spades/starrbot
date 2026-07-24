@@ -151,7 +151,7 @@ Replace `username` with the actual TikTok username. The `/` prefix auto-adds `ht
 Other examples:
 
 ```
-!addfeed /twitter/user/elonmusk
+!addfeed /tiktok/user/username
 !addfeed /instagram/user/natgeo
 !addfeed https://www.youtube.com/feeds/videos.xml?channel_id=UC_x5XG1OV2P6uZZ5FSM9Ttw
 ```
