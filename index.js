@@ -163,8 +163,6 @@ client.on('messageCreate', async (msg) => {
   }
 
   if (msg.content === '!stats') {
-    const adminChannel = client.channels.cache.get(process.env.ADMIN_CHANNEL_ID);
-    const target = adminChannel || msg.channel;
     const embed = new EmbedBuilder()
       .setColor(0x5865F2)
       .setTitle('📊 Bot Stats')
@@ -175,7 +173,7 @@ client.on('messageCreate', async (msg) => {
         { name: 'Last Check', value: stats.lastCheck ? `<t:${Math.floor(stats.lastCheck.getTime() / 1000)}:R>` : 'Never', inline: true }
       )
       .setTimestamp();
-    await target.send({ embeds: [embed] });
+    await msg.reply({ embeds: [embed] });
   }
 
   if (msg.content.startsWith('!addfeed ')) {
@@ -184,6 +182,7 @@ client.on('messageCreate', async (msg) => {
     let url = msg.content.slice(9).trim();
     if (url.startsWith('/')) url = (process.env.RSSHUB_BASE_URL || '') + url;
     if (!url.startsWith('http')) return msg.reply('Invalid URL. Use a full URL or relative path like `/tiktok/user/name`.');
+    if (ALL_FEEDS.includes(url)) return msg.reply('Feed already exists.');
     ALL_FEEDS.push(url);
     saveFeeds();
     await msg.reply(`Added: ${url}`);
@@ -193,7 +192,7 @@ client.on('messageCreate', async (msg) => {
     const member = await msg.guild.members.fetch(msg.author.id);
     if (!isAdmin(member)) return msg.reply('Admin only.');
     const idx = parseInt(msg.content.slice(12)) - 1;
-    if (idx < 0 || idx >= ALL_FEEDS.length) return msg.reply('Invalid feed number. Use `!feeds` to see list.');
+    if (Number.isNaN(idx) || idx < 0 || idx >= ALL_FEEDS.length) return msg.reply('Invalid feed number. Use `!feeds` to see list.');
     const removed = ALL_FEEDS.splice(idx, 1)[0];
     saveFeeds();
     await msg.reply(`Removed: ${removed}`);
@@ -205,15 +204,21 @@ client.on('messageCreate', async (msg) => {
     const adminChannel = client.channels.cache.get(process.env.ADMIN_CHANNEL_ID);
     if (!adminChannel) return msg.reply('Admin channel not configured.');
 
-    const ticketId = ++ticketCounter;
-    const thread = await adminChannel.threads.create({
-      name: `ticket-${ticketId}`,
-      reason: `Ticket from ${msg.author.tag}`,
-    });
-    await thread.send(`**Ticket #${ticketId}** from <@${msg.author.id}>\n\n${message}`);
-    await thread.members.add(msg.author.id);
-    tickets.set(thread.id, { submitterId: msg.author.id, ticketId });
-    await msg.reply(`Ticket #${ticketId} created. An admin will respond shortly.`);
+    let thread;
+    try {
+      thread = await adminChannel.threads.create({
+        name: `ticket-${++ticketCounter}`,
+        reason: `Ticket from ${msg.author.tag}`,
+      });
+    } catch {
+      return msg.reply('Failed to create ticket. Bot needs Manage Threads permission.');
+    }
+    await thread.send(`**Ticket #${ticketCounter}** from <@${msg.author.id}>\n\n${message}`);
+    try {
+      await thread.members.add(msg.author.id);
+    } catch {}
+    tickets.set(thread.id, { submitterId: msg.author.id, ticketId: ticketCounter });
+    await msg.reply(`Ticket #${ticketCounter} created. An admin will respond shortly.`);
   }
 
   // Ticket thread handling
@@ -228,12 +233,14 @@ client.on('messageCreate', async (msg) => {
       return;
     }
 
-    // Admin reply → DM submitter
+    // Admin reply → DM submitter, fallback to thread mention
     if (msg.author.id !== ticket.submitterId) {
       try {
         const submitter = await client.users.fetch(ticket.submitterId);
         await submitter.send(`**Admin reply to Ticket #${ticket.ticketId}:**\n${msg.content}`);
-      } catch {}
+      } catch {
+        await msg.channel.send(`<@${ticket.submitterId}> ^ read above`);
+      }
     }
   }
 });
