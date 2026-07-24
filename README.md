@@ -40,15 +40,21 @@ Discord bot that monitors social media RSS feeds and posts updates to a channel.
 3. **Admin channel (for tickets/stats):** Right-click a channel only admins can see → **Copy Channel ID** (create one if needed)
 4. **Admin role:** Server Settings → Roles → right-click the admin role → **Copy Role ID** (optional, can skip)
 
-## Step 3: Clone and Configure
+## Step 3: Clone, Login to GHCR, and Configure
 
 SSH into your server and run:
 
 ```bash
+# Clone the repo
 cd /opt
 sudo git clone https://github.com/black7spades/mkittybot.git
 cd mkittybot
-sudo cp .env .env.backup
+
+# Login to GitHub Container Registry (so Docker can pull the bot image)
+# Create a classic PAT at https://github.com/settings/tokens with write:packages scope
+echo "paste_your_github_pat_here" | sudo docker login ghcr.io -u black7spades --password-stdin
+
+# Create and edit the .env file
 sudo nano .env
 ```
 
@@ -77,7 +83,7 @@ Save and exit: press `Ctrl+X` → `Y` → `Enter`
 5. Set the **Working Directory** or **Source Path** to: `/opt/mkittybot`
 6. Click **Deploy** or **Start**
 
-Dockhand will read the `docker-compose.yml` and start both the bot and RSSHub containers.
+Dockhand will pull the bot image from `ghcr.io/black7spades/mkittybot:latest` and start both the bot and RSSHub containers.
 
 To verify it's running:
 1. In Dockhand, find the `mkitty-bot-bot-1` container
@@ -85,35 +91,18 @@ To verify it's running:
 
 ### Pulling Updates via Dockhand
 
-When you push changes to GitHub, pull them on your server:
+When you push new code and want the latest image:
 
-**Option A: Dockhand Terminal**
-1. In Dockhand, find your `mkittybot` stack or container
-2. Click **Terminal** or **Exec** (opens a shell inside the container)
-3. This won't work for git — you need the host terminal
+**Step 1: Pull the latest image**
+- In Dockhand, look for **Images** or **Docker Images** section
+- Find `ghcr.io/black7spades/mkittybot`
+- Click **Pull** or **Refresh** — this downloads the latest image from GitHub
+- Or via SSH: `sudo docker pull ghcr.io/black7spades/mkittybot:latest`
 
-**Option B: Dockhand SSH / Host Terminal**
-1. In Dockhand, look for **Host** or **SSH** or **Terminal** tab (top menu or sidebar)
-2. This opens a terminal on the actual server
-3. Run these commands:
-   ```bash
-   cd /opt/mkittybot
-   sudo git pull
-   sudo docker compose down
-   sudo docker compose up -d
-   ```
-
-**Option C: SSH from your PC (easiest)**
-Open PowerShell or Terminal on your PC:
-```bash
-ssh root@servalan.one
-cd /opt/mkittybot
-git pull
-docker compose down
-docker compose up -d
-```
-
-After pulling, the bot and RSSHub containers restart with your latest code.
+**Step 2: Restart the container**
+- In Dockhand, find your `mkitty-bot` stack
+- Click **Stop** then **Start** (or **Restart**)
+- The container now runs the latest image
 
 ## Step 5: Expose RSSHub to the Internet
 
