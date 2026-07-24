@@ -188,7 +188,10 @@ To see your feeds:
 | `!ping` | Everyone | Checks if bot is alive |
 | `!feeds` | Everyone | Lists all monitored feeds |
 | `!ticket <message>` | Everyone | Creates a support ticket |
-| `!closed` | Anyone in ticket | Closes a ticket |
+| `!ticketinfo` | Anyone in ticket | Shows ticket details |
+| `!close` | Admins in ticket | Closes a ticket |
+| `!priority <low\|medium\|high>` | Admins in ticket | Sets ticket priority |
+| `!assign @user` | Admins in ticket | Assigns ticket to admin |
 | `!addfeed <url>` | Admins only | Adds a new feed |
 | `!removefeed <#>` | Admins only | Removes feed by number |
 | `!stats` | Everyone | Shows bot statistics |

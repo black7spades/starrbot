@@ -147,10 +147,14 @@ client.on('messageCreate', async (msg) => {
   if (msg.content === '!help') {
     const member = await msg.guild.members.fetch(msg.author.id);
     const admin = isAdmin(member);
+    const inTicket = tickets.has(msg.channel.id);
     const embed = new EmbedBuilder()
       .setColor(0x5865F2)
       .setTitle('📖 Commands')
       .setDescription('**Everyone**\n`!ping` — Check bot is alive\n`!feeds` — List monitored feeds\n`!ticket <msg>` — Submit a support ticket\n`!help` — Show this message');
+    if (inTicket) {
+      embed.addFields({ name: '🎫 Ticket', value: '`!ticketinfo` — View ticket details\n`!close` — Close ticket (admin)\n`!priority <low|medium|high>` — Set priority (admin)\n`!assign @user` — Assign to admin (admin)' });
+    }
     if (admin) {
       embed.addFields({ name: '🔒 Admin', value: '`!addfeed <url>` — Add a new feed\n`!removefeed <#>` — Remove feed by number\n`!stats` — View bot statistics' });
     }
@@ -217,19 +221,54 @@ client.on('messageCreate', async (msg) => {
     try {
       await thread.members.add(msg.author.id);
     } catch {}
-    tickets.set(thread.id, { submitterId: msg.author.id, ticketId: ticketCounter });
+    tickets.set(thread.id, { submitterId: msg.author.id, ticketId: ticketCounter, priority: 'medium', assignedTo: null });
     await msg.reply(`Ticket #${ticketCounter} created. An admin will respond shortly.`);
   }
 
   // Ticket thread handling
   if (tickets.has(msg.channel.id)) {
     const ticket = tickets.get(msg.channel.id);
+    const member = await msg.guild.members.fetch(msg.author.id);
+    const admin = isAdmin(member);
+    const priorityEmoji = { low: '🟢', medium: '🟡', high: '🔴' };
 
-    if (msg.content === '!closed') {
+    if (msg.content === '!closed' || msg.content === '!close') {
+      if (!admin) return msg.reply('Admins only.');
       try { await msg.channel.members.remove(ticket.submitterId); } catch {}
       await msg.channel.setArchived(true, 'Ticket resolved');
       tickets.delete(msg.channel.id);
       await msg.reply('Ticket closed.');
+      return;
+    }
+
+    if (msg.content.startsWith('!priority ')) {
+      if (!admin) return msg.reply('Admins only.');
+      const p = msg.content.slice(10).trim().toLowerCase();
+      if (!['low', 'medium', 'high'].includes(p)) return msg.reply('Usage: `!priority <low|medium|high>`');
+      ticket.priority = p;
+      await msg.reply(`${priorityEmoji[p]} Priority set to **${p}**`);
+      return;
+    }
+
+    if (msg.content.startsWith('!assign ')) {
+      if (!admin) return msg.reply('Admins only.');
+      const target = msg.mentions.users.first();
+      if (!target) return msg.reply('Usage: `!assign @user`');
+      ticket.assignedTo = target.id;
+      await msg.reply(`Assigned to <@${target.id}>`);
+      return;
+    }
+
+    if (msg.content === '!ticketinfo') {
+      const embed = new EmbedBuilder()
+        .setColor(ticket.priority === 'high' ? 0xED4245 : ticket.priority === 'low' ? 0x57F287 : 0xFEE75C)
+        .setTitle(`Ticket #${ticket.ticketId}`)
+        .addFields(
+          { name: 'Submitter', value: `<@${ticket.submitterId}>`, inline: true },
+          { name: 'Priority', value: `${priorityEmoji[ticket.priority]} ${ticket.priority}`, inline: true },
+          { name: 'Assigned', value: ticket.assignedTo ? `<@${ticket.assignedTo}>` : 'Unassigned', inline: true }
+        );
+      await msg.reply({ embeds: [embed] });
       return;
     }
 
