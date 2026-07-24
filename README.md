@@ -78,12 +78,17 @@ Now create the RSSHub credentials file:
 sudo nano .env.rsshub
 ```
 
-Fill in your Instagram credentials (for Instagram feeds):
+Fill in your Instagram session cookie (for Instagram feeds):
 
 ```
-INSTAGRAM_USERNAME=your_instagram_username
-INSTAGRAM_PASSWORD=your_instagram_password
+IG_COOKIE=sessionid=YOUR_SESSION_ID_HERE
 ```
+
+**How to get your Instagram session ID:**
+1. Log into a **burner/secondary Instagram account** in your desktop browser (do NOT use your main account)
+2. Open Developer Tools (F12) → **Application** tab → **Cookies** → `https://www.instagram.com`
+3. Find `sessionid` → copy its value
+4. Paste it as `sessionid=YOUR_VALUE_HERE`
 
 Save and exit: press `Ctrl+X` → `Y` → `Enter`
 
