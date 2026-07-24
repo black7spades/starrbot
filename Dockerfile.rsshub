@@ -1,7 +1,19 @@
 FROM diygod/rsshub:latest
 
-RUN apk add --no-cache chromium \
-  && npx playwright install chromium
+USER root
+
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    glib \
+    libstdc++ \
+    dbus \
+    ttf-freefont \
+    font-noto-cjk \
+  && npm install -g playwright \
+  && playwright install --with-deps chromium
 
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
   PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
