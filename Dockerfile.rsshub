@@ -1,0 +1,7 @@
+FROM diygod/rsshub:latest
+
+RUN apk add --no-cache chromium \
+  && npx playwright install chromium
+
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+  PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser

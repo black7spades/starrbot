@@ -9,8 +9,12 @@ services:
       - rsshub
 
   rsshub:
-    image: diygod/rsshub
+    build:
+      context: .
+      dockerfile: Dockerfile.rsshub
+    image: ghcr.io/black7spades/rsshub-playwright:latest
     restart: unless-stopped
+    env_file: .env.rsshub
     environment:
       - CACHE_TYPE=memory
     ports:
