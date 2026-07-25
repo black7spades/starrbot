@@ -13,10 +13,7 @@ services:
 
   rsshub:
     container_name: mkitty-rsshub
-    build:
-      context: .
-      dockerfile: Dockerfile.rsshub
-    image: mkitty-rsshub:latest
+    image: ghcr.io/black7spades/rsshub-playwright:latest
     restart: unless-stopped
     environment:
       - CACHE_TYPE=memory
