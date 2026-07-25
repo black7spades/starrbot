@@ -47,18 +47,11 @@ cd YOUR_REPO
 # Create a classic PAT at https://github.com/settings/tokens with write:packages scope
 echo "paste_your_github_pat_here" | sudo docker login ghcr.io -u YOUR_GITHUB_USER --password-stdin
 
-# Create .env with just the two values the bot needs to start
-sudo nano .env
+# Run the setup script (creates .env with your Discord token)
+sudo bash setup.sh
 ```
 
-Fill in only these two lines:
-
-```
-DISCORD_TOKEN=paste_your_bot_token_here
-DISCORD_CLIENT_ID=paste_your_client_id_here
-```
-
-Save and exit: press `Ctrl+X` → `Y` → `Enter`
+The script asks for your Discord Bot Token and Client ID, then creates `.env`.
 
 Then start the stack:
 
