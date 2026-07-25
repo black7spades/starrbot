@@ -1,6 +1,7 @@
 const { Client, GatewayIntentBits, EmbedBuilder, ChannelType } = require('discord.js');
 const Parser = require('rss-parser');
 const fs = require('fs');
+const { execSync } = require('child_process');
 const parser = new Parser();
 
 const client = new Client({
@@ -19,9 +20,92 @@ const tickets = new Map();
 let ticketCounter = 0;
 
 const CHECK_INTERVAL = parseInt(process.env.CHECK_INTERVAL) || 15;
-const CHANNEL_ID = process.env.DISCORD_CHANNEL_ID;
-const ADMIN_ROLE_ID = process.env.ADMIN_ROLE_ID;
 const FEEDS_FILE = `${__dirname}/feeds.json`;
+const CONFIG_FILE = `${__dirname}/config.json`;
+const ENV_FILE = `${__dirname}/.env`;
+
+const SENSITIVE_KEYS = ['IG_PASSWORD', 'DISCORD_TOKEN', 'YOUTUBE_KEY'];
+const RSSHUB_KEYS = ['IG_USERNAME', 'IG_PASSWORD', 'YOUTUBE_KEY', 'RSSHUB_BASE_URL'];
+
+function loadConfig() {
+  try { return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')); } catch { return {}; }
+}
+
+function saveConfig(cfg) { fs.writeFileSync(CONFIG_FILE, JSON.stringify(cfg, null, 2)); }
+
+function writeEnv(cfg) {
+  const existing = {};
+  try {
+    fs.readFileSync(ENV_FILE, 'utf8').split('\n').forEach(line => {
+      const eq = line.indexOf('=');
+      if (eq > 0) existing[line.slice(0, eq)] = line.slice(eq + 1);
+    });
+  } catch {}
+  const merged = { ...existing, ...cfg };
+  fs.writeFileSync(ENV_FILE, Object.entries(merged).map(([k, v]) => `${k}=${v}`).join('\n') + '\n');
+}
+
+function restartRsshub() {
+  try { execSync('docker restart mkitty-rsshub', { timeout: 30000 }); return true; } catch { return false; }
+}
+
+const cfg = loadConfig();
+
+// ponytail: onboarding state machine — in-memory, lost on restart, user just runs !setup again
+const setupState = new Map();
+const SETUP_STEPS = [
+  {
+    key: 'DISCORD_CHANNEL_ID',
+    label: 'Feed Channel',
+    instruction: 'The channel where social media posts will be posted.\n\n**How to get it:** Right-click the channel in Discord → **Copy Channel ID**.\n(Enable Developer Mode first: Settings → Advanced → Developer Mode.)',
+  },
+  {
+    key: 'ADMIN_CHANNEL_ID',
+    label: 'Admin Channel',
+    instruction: 'The channel where support tickets will be created.\n\n**How to get it:** Right-click the channel → **Copy Channel ID**.',
+  },
+  {
+    key: 'ADMIN_ROLE_ID',
+    label: 'Admin Role',
+    instruction: 'The role that can manage feeds and config. Type `skip` to allow everyone.\n\n**How to get it:** Right-click the role in Server Settings → **Copy Role ID**.',
+    optional: true,
+    skipValue: '',
+  },
+  {
+    key: 'IG_USERNAME',
+    label: 'Instagram Username',
+    instruction: 'The Instagram username to monitor.\n\n**Note:** This uses Instagram\'s private API. Use the exact username (no @).',
+  },
+  {
+    key: 'IG_PASSWORD',
+    label: 'Instagram Password',
+    instruction: 'The Instagram password for the account above.\n\n**Note:** 2FA must be OFF on this account. The password is stored locally only.',
+    sensitive: true,
+  },
+  {
+    key: 'YOUTUBE_KEY',
+    label: 'YouTube API Key',
+    instruction: 'A YouTube Data API v3 key.\n\n**How to get it:**\n1. Go to [console.cloud.google.com](https://console.cloud.google.com)\n2. Create a project (or use existing)\n3. Go to **APIs & Services → Library**\n4. Search "YouTube Data API v3" → Enable it\n5. Go to **APIs & Services → Credentials**\n6. Click **Create Credentials → API Key**\n7. Copy the key',
+  },
+  {
+    key: 'RSSHUB_BASE_URL',
+    label: 'RSSHub URL',
+    instruction: 'The URL of your RSSHub instance.\n\nIf RSSHub is on the same server, type `skip` to use the default (`http://rsshub:1200`).',
+    optional: true,
+    skipValue: 'http://rsshub:1200',
+  },
+];
+
+async function sendSetupStep(userId, channel) {
+  const state = setupState.get(userId);
+  if (!state || state.step >= SETUP_STEPS.length) return;
+  const s = SETUP_STEPS[state.step];
+  const embed = new EmbedBuilder()
+    .setColor(0x5865F2)
+    .setTitle(`Setup (${state.step + 1}/${SETUP_STEPS.length}): ${s.label}`)
+    .setDescription(s.instruction + (s.optional ? '\n\nType `skip` to skip this step.' : ''));
+  await channel.send({ embeds: [embed] });
+}
 
 // ponytail: load from file, fall back to .env seed on first run
 function loadFeeds() {
@@ -40,7 +124,7 @@ const ALL_FEEDS = loadFeeds();
 
 // ponytail: role check as a one-liner, not a permission service
 function isAdmin(member) {
-  return !ADMIN_ROLE_ID || member.roles.cache.has(ADMIN_ROLE_ID);
+  return !cfg.ADMIN_ROLE_ID || member.roles.cache.has(cfg.ADMIN_ROLE_ID);
 }
 
 function getPlatformFromUrl(url) {
@@ -105,7 +189,7 @@ async function checkFeed(feedUrl, channel) {
 }
 
 async function checkAllFeeds() {
-  const channel = client.channels.cache.get(CHANNEL_ID);
+  const channel = client.channels.cache.get(cfg.DISCORD_CHANNEL_ID);
   if (!channel || channel.type !== ChannelType.GuildText) {
     console.error('Invalid channel ID');
     return;
@@ -118,17 +202,73 @@ async function checkAllFeeds() {
 
 client.once('clientReady', (c) => {
   console.log(`Logged in as ${client.user.tag}`);
-  console.log(`Monitoring ${ALL_FEEDS.length} feeds every ${CHECK_INTERVAL} minutes`);
 
+  if (!cfg.DISCORD_CHANNEL_ID || !cfg.ADMIN_CHANNEL_ID) {
+    console.log('⚠️  No config found. Run !setup in Discord to configure the bot.');
+  }
+
+  console.log(`Monitoring ${ALL_FEEDS.length} feeds every ${CHECK_INTERVAL} minutes`);
   setInterval(checkAllFeeds, CHECK_INTERVAL * 60 * 1000);
-  checkAllFeeds();
+  if (cfg.DISCORD_CHANNEL_ID) checkAllFeeds();
 });
 
 client.on('messageCreate', async (msg) => {
   if (msg.author.bot) return;
 
+  // ponytail: intercept setup replies before any other command
+  if (setupState.has(msg.author.id)) {
+    if (msg.content.toLowerCase() === '!cancel') {
+      setupState.delete(msg.author.id);
+      return msg.reply('Setup cancelled.');
+    }
+    if (!msg.content.startsWith('!')) {
+      const state = setupState.get(msg.author.id);
+      const s = SETUP_STEPS[state.step];
+      const value = msg.content.trim();
+
+      if (value.toLowerCase() === 'skip' && s.optional) {
+        cfg[s.key] = s.skipValue;
+      } else {
+        cfg[s.key] = value;
+        if (s.sensitive) await msg.reply(`${s.label} saved.`);
+      }
+
+      state.step++;
+      if (state.step >= SETUP_STEPS.length) {
+        saveConfig(cfg);
+        writeEnv(cfg);
+        setupState.delete(msg.author.id);
+        const embed = new EmbedBuilder()
+          .setColor(0x57F287)
+          .setTitle('Setup Complete')
+          .setDescription('All values saved. RSSHub restarting...');
+        await msg.reply({ embeds: [embed] });
+        const ok = restartRsshub();
+        if (ok) await msg.channel.send('RSSHub restarted. Add feeds with `!addfeed`.');
+        else await msg.channel.send('RSSHub restart failed — check server logs.');
+        return;
+      }
+      await sendSetupStep(msg.author.id, msg.channel);
+      return;
+    }
+  }
+
   if (msg.content === '!ping') {
     await msg.reply('Pong! 🏓');
+  }
+
+  if (msg.content === '!setup') {
+    const member = await msg.guild.members.fetch(msg.author.id);
+    if (!isAdmin(member)) return msg.reply('Admin only.');
+    if (setupState.has(msg.author.id)) return msg.reply('Setup already in progress. Type `!cancel` to restart.');
+    setupState.set(msg.author.id, { step: 0 });
+    const embed = new EmbedBuilder()
+      .setColor(0x5865F2)
+      .setTitle('Setup Started')
+      .setDescription('I\'ll walk you through each config value. Type `!cancel` at any time to stop.');
+    await msg.reply({ embeds: [embed] });
+    await sendSetupStep(msg.author.id, msg.channel);
+    return;
   }
 
   if (msg.content === '!help') {
@@ -143,7 +283,7 @@ client.on('messageCreate', async (msg) => {
       embed.addFields({ name: '🎫 Ticket', value: '`!ticketinfo` — View ticket details\n`!close` — Close ticket (admin)\n`!priority <low|medium|high>` — Set priority (admin)\n`!assign @user` — Assign to admin (admin)' });
     }
     if (admin) {
-      embed.addFields({ name: '🔒 Admin', value: '`!addfeed <url>` — Add a new feed\n`!removefeed <#>` — Remove feed by number\n`!stats` — View bot statistics' });
+      embed.addFields({ name: '🔒 Admin', value: '`!setup` — First-time config wizard\n`!addfeed <url>` — Add a new feed\n`!removefeed <#>` — Remove feed by number\n`!config set <KEY> <value>` — Set config manually\n`!config show` — View current config\n`!stats` — View bot statistics' });
     }
     await msg.reply({ embeds: [embed] });
   }
@@ -171,7 +311,7 @@ client.on('messageCreate', async (msg) => {
     const member = await msg.guild.members.fetch(msg.author.id);
     if (!isAdmin(member)) return msg.reply('Admin only.');
     let url = msg.content.slice(9).trim();
-    if (url.startsWith('/')) url = (process.env.RSSHUB_BASE_URL || '') + url;
+    if (url.startsWith('/')) url = (cfg.RSSHUB_BASE_URL || '') + url;
     if (!url.startsWith('http')) return msg.reply('Invalid URL. Use a full URL or relative path like `/tiktok/user/name`.');
     if (ALL_FEEDS.includes(url)) return msg.reply('Feed already exists.');
     ALL_FEEDS.push(url);
@@ -189,10 +329,36 @@ client.on('messageCreate', async (msg) => {
     await msg.reply(`Removed: ${removed}`);
   }
 
+  if (msg.content === '!config show') {
+    const member = await msg.guild.members.fetch(msg.author.id);
+    if (!isAdmin(member)) return msg.reply('Admin only.');
+    const display = Object.entries(cfg).map(([k, v]) => `${k} = ${SENSITIVE_KEYS.includes(k) ? '***' : v}`);
+    const embed = new EmbedBuilder().setColor(0x5865F2).setTitle('⚙️ Config').setDescription(display.join('\n') || 'No config set.');
+    await msg.reply({ embeds: [embed] });
+  }
+
+  if (msg.content.startsWith('!config set ')) {
+    const member = await msg.guild.members.fetch(msg.author.id);
+    if (!isAdmin(member)) return msg.reply('Admin only.');
+    const rest = msg.content.slice(12).trim();
+    const spaceIdx = rest.indexOf(' ');
+    if (spaceIdx < 0) return msg.reply('Usage: `!config set <KEY> <value>`');
+    const key = rest.slice(0, spaceIdx).toUpperCase();
+    const value = rest.slice(spaceIdx + 1).trim();
+    cfg[key] = value;
+    saveConfig(cfg);
+    writeEnv(cfg);
+    await msg.reply(`Set \`${key}\` = ${SENSITIVE_KEYS.includes(key) ? '***' : value}`);
+    if (RSSHUB_KEYS.includes(key)) {
+      const ok = restartRsshub();
+      await msg.reply(ok ? 'RSSHub restarted.' : 'RSSHub restart failed — check server.');
+    }
+  }
+
   if (msg.content.startsWith('!ticket ')) {
     const message = msg.content.slice(8).trim();
     if (!message) return msg.reply('Usage: !ticket <message>');
-    const adminChannel = client.channels.cache.get(process.env.ADMIN_CHANNEL_ID);
+    const adminChannel = client.channels.cache.get(cfg.ADMIN_CHANNEL_ID);
     if (!adminChannel) return msg.reply('Admin channel not configured.');
 
     let thread;

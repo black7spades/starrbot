@@ -33,14 +33,7 @@ Discord bot that monitors social media RSS feeds and posts updates to a channel.
 9. Copy the **Generated URL** at the bottom → paste it in your browser → select your server → Authorize
 10. Go back to the **General Information** page → copy the **Application ID** (this is your Client ID)
 
-## Step 2: Get Your Channel IDs
-
-1. Open Discord → go to **User Settings** → **Advanced** → turn on **Developer Mode**
-2. **Channel for bot posts:** Right-click the channel where you want social media updates → **Copy Channel ID**
-3. **Admin channel (for tickets/stats):** Right-click a channel only admins can see → **Copy Channel ID** (create one if needed)
-4. **Admin role:** Server Settings → Roles → right-click the admin role → **Copy Role ID** (optional, can skip)
-
-## Step 3: Clone, Login to GHCR, and Configure
+## Step 2: Clone, Login to GHCR, and Deploy
 
 SSH into your server and run:
 
@@ -54,67 +47,50 @@ cd YOUR_REPO
 # Create a classic PAT at https://github.com/settings/tokens with write:packages scope
 echo "paste_your_github_pat_here" | sudo docker login ghcr.io -u YOUR_GITHUB_USER --password-stdin
 
-# Create and edit the .env file
+# Create .env with just the two values the bot needs to start
 sudo nano .env
 ```
 
-Fill in the file with your actual values:
+Fill in only these two lines:
 
 ```
 DISCORD_TOKEN=paste_your_bot_token_here
 DISCORD_CLIENT_ID=paste_your_client_id_here
-DISCORD_CHANNEL_ID=paste_your_channel_id_here
-ADMIN_CHANNEL_ID=paste_your_admin_channel_id_here
-ADMIN_ROLE_ID=paste_your_admin_role_id_here
-RSSHUB_BASE_URL=https://rsshub.yourdomain.com
-CHECK_INTERVAL=15
-IG_USERNAME=your_instagram_username
-IG_PASSWORD=your_instagram_password
-YOUTUBE_KEY=YOUR_YOUTUBE_API_KEY_HERE
 ```
-
-**How to get your Instagram credentials:**
-1. Use a **burner/secondary Instagram account** (do NOT use your main account)
-2. 2FA is NOT supported — disable it on the burner account
-3. Set `IG_USERNAME` and `IG_PASSWORD` in `.env`
-
-**How to get your YouTube API key:**
-1. Go to https://console.cloud.google.com
-2. Create a project (or use existing)
-3. Go to **APIs & Services** → **Library** → enable **YouTube Data API v3**
-4. Go to **APIs & Services** → **Credentials** → **Create Credentials** → **API key**
-5. Copy the key
 
 Save and exit: press `Ctrl+X` → `Y` → `Enter`
 
-## Step 4: Deploy with Dockhand
+Then start the stack:
 
-### First Time Setup
+```bash
+sudo docker compose up -d
+```
 
-1. Open Dockhand (usually at http://YOUR_SERVER_IP:8080)
-2. Go to **Stacks** or **Compose**
-3. Click **Add Stack** or **New Stack**
-4. Name it: `mkitty-bot`
-5. Set the **Working Directory** or **Source Path** to: `/opt/YOUR_REPO`
-6. Click **Deploy** or **Start**
+## Step 3: Configure the Bot via Discord
 
-Dockhand will pull the bot image from `ghcr.io/YOUR_GITHUB_USER/YOUR_REPO:latest` and build the custom RSSHub image with Patchright browsers for TikTok support.
+Once the bot is running, go to your Discord server and type:
 
-To verify it's running:
-1. In Dockhand, find the `mkitty-bot-bot-1` container
-2. Click **Logs** — you should see: `Logged in as Mkitty#XXXX`
+```
+!setup
+```
 
-### Auto-Updates
+The bot will walk you through each config value with instructions on how to get it:
 
-Watchtower is included in the stack. It polls GHCR every 5 minutes and auto-restarts the bot when a new image is pushed. Push code → GitHub Actions builds → Watchtower deploys. Zero manual steps.
+1. **Feed Channel** — the channel where social media posts appear (right-click → Copy Channel ID)
+2. **Admin Channel** — the channel for support tickets (right-click → Copy Channel ID)
+3. **Admin Role** — who can manage feeds (right-click → Copy Role ID, or `skip` for everyone)
+4. **Instagram Username** — the username to monitor
+5. **Instagram Password** — the password (2FA must be off, use a burner account)
+6. **YouTube API Key** — how to get it is explained in the wizard
+7. **RSSHub URL** — `skip` to use the default if RSSHub is on the same server
 
-**Note:** The first time you deploy, Dockhand will build the RSSHub image locally (this takes a few minutes to install Patchright browsers). Subsequent starts use the cached image.
+Type `!cancel` at any time to stop. All values are stored locally on the server.
 
-## Step 5: Expose RSSHub to the Internet
+## Step 4: Expose RSSHub to the Internet
 
 RSSHub runs inside Docker and needs to be accessible from the internet so your bot can fetch social media feeds.
 
-### 5a: Nginx Proxy Manager
+### 4a: Nginx Proxy Manager
 
 1. Open Nginx Proxy Manager (usually at http://YOUR_SERVER_IP:81)
 2. Click **Add Proxy Host**
@@ -127,7 +103,7 @@ RSSHub runs inside Docker and needs to be accessible from the internet so your b
 4. Click **SSL** tab → select **Let's Encrypt** → check **Force SSL** → **Save**
 5. Click **Save**
 
-### 5b: Cloudflare DNS
+### 4b: Cloudflare DNS
 
 1. Log in to Cloudflare → select your domain
 2. Go to **DNS** → **Records** → **Add Record**
@@ -138,21 +114,25 @@ RSSHub runs inside Docker and needs to be accessible from the internet so your b
    - **Proxy Status:** Proxied (orange cloud) ✅
 4. Click **Save**
 
-### 5c: Test It
+### 4c: Test It
 
 Open your browser and go to: `https://rsshub.yourdomain.com`
 
 You should see the RSSHub welcome page. If you do, it's working.
 
-## Step 6: Add Your First Feed
+If your RSSHub URL is different from the default (`http://rsshub:1200`), update it:
 
-Go to your Discord server and type:
+```
+!config set RSSHUB_BASE_URL https://rsshub.yourdomain.com
+```
+
+## Step 5: Add Your First Feed
 
 ```
 !addfeed /tiktok/user/username
 ```
 
-Replace `username` with the actual TikTok username. The `/` prefix auto-adds your `RSSHUB_BASE_URL`.
+Replace `username` with the actual TikTok username. The `/` prefix auto-adds your RSSHub URL.
 
 Other examples:
 
@@ -169,10 +149,17 @@ To see your feeds:
 !feeds
 ```
 
+## Auto-Updates
+
+Watchtower is included in the stack. It polls GHCR every 5 minutes and auto-restarts the bot when a new image is pushed. Push code → GitHub Actions builds → Watchtower deploys. Zero manual steps.
+
 ## All Commands
 
 | Command | Who Can Use It | What It Does |
 |---------|---------------|--------------|
+| `!setup` | Admins only | First-time config wizard |
+| `!config show` | Admins only | Shows current config |
+| `!config set <KEY> <value>` | Admins only | Sets a config value |
 | `!help` | Everyone | Shows all commands |
 | `!ping` | Everyone | Checks if bot is alive |
 | `!feeds` | Everyone | Lists all monitored feeds |
@@ -185,11 +172,25 @@ To see your feeds:
 | `!removefeed <#>` | Admins only | Removes feed by number |
 | `!stats` | Everyone | Shows bot statistics |
 
+## Config Keys
+
+These can be set with `!config set`:
+
+| Key | What It Does |
+|-----|-------------|
+| `DISCORD_CHANNEL_ID` | Channel where posts appear |
+| `ADMIN_CHANNEL_ID` | Channel for tickets |
+| `ADMIN_ROLE_ID` | Role that can manage feeds (empty = everyone) |
+| `IG_USERNAME` | Instagram username to monitor |
+| `IG_PASSWORD` | Instagram password (2FA must be off) |
+| `YOUTUBE_KEY` | YouTube Data API v3 key |
+| `RSSHUB_BASE_URL` | RSSHub URL (default: `http://rsshub:1200`) |
+| `CHECK_INTERVAL` | Minutes between checks (default: 15) |
+
 ## Troubleshooting
 
 **Bot doesn't respond:**
-- In Dockhand: find the bot container → click **Logs**
-- Or SSH and run: `sudo docker compose -f /opt/YOUR_REPO/docker-compose.yml logs bot | tail -20`
+- In Dockhand: find the `mkitty-bot` container → click **Logs**
 
 **RSSHub not working:**
 ```bash
@@ -199,13 +200,13 @@ Should return HTML. If not, check Nginx Proxy Manager and Cloudflare.
 
 **Bot can't fetch feeds:**
 ```bash
-sudo docker compose -f /opt/YOUR_REPO/docker-compose.yml exec bot wget -q -O- https://rsshub.yourdomain.com/tiktok/user/username
+sudo docker exec mkitty-bot wget -q -O- http://rsshub:1200/tiktok/user/username
 ```
 Should return XML. If not, RSSHub can't reach the internet.
 
 **Force restart (Watchtower handles most updates automatically):**
 - In Dockhand: find the container → click **Restart**
-- Or SSH: `sudo docker compose -f /opt/YOUR_REPO/docker-compose.yml restart`
+- Or SSH: `sudo docker restart mkitty-bot`
 
 **Stop everything:**
 - In Dockhand: find the stack → click **Stop** or **Delete**

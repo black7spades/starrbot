@@ -1,14 +1,19 @@
 services:
   bot:
+    container_name: mkitty-bot
     image: ghcr.io/black7spades/mkittybot:latest
     restart: unless-stopped
     env_file: .env
     volumes:
       - ./feeds.json:/app/feeds.json
+      - ./config.json:/app/config.json
+      - ./.env:/app/.env
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - rsshub
 
   rsshub:
+    container_name: mkitty-rsshub
     build:
       context: .
       dockerfile: Dockerfile.rsshub
