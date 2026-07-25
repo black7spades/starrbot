@@ -3,22 +3,17 @@ const Parser = require('rss-parser');
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
-const { execSync } = require('child_process');
 const parser = new Parser();
 
 const DATA_DIR = `${__dirname}/data`;
 const CONFIG_FILE = `${DATA_DIR}/config.json`;
-const CONFIG_ENV = `${DATA_DIR}/config.env`;
 const FEEDS_FILE = `${DATA_DIR}/feeds.json`;
 
 const SENSITIVE_KEYS = ['IG_PASSWORD', 'DISCORD_TOKEN', 'YOUTUBE_KEY', 'ADMIN_PASSWORD'];
-const RSSHUB_KEYS = ['IG_USERNAME', 'IG_PASSWORD', 'YOUTUBE_KEY', 'RSSHUB_BASE_URL'];
-const SETUP_ORDER = ['DISCORD_CHANNEL_ID', 'ADMIN_CHANNEL_ID', 'ADMIN_ROLE_ID', 'IG_USERNAME', 'IG_PASSWORD', 'YOUTUBE_KEY', 'RSSHUB_BASE_URL', 'CHECK_INTERVAL'];
 
 // ── Bootstrap: create data dir + empty files on first run ────────────────
 fs.mkdirSync(DATA_DIR, { recursive: true });
 if (!fs.existsSync(CONFIG_FILE)) fs.writeFileSync(CONFIG_FILE, '{}');
-if (!fs.existsSync(CONFIG_ENV)) fs.writeFileSync(CONFIG_ENV, '');
 if (!fs.existsSync(FEEDS_FILE)) fs.writeFileSync(FEEDS_FILE, '[]');
 
 // ── Config ────────────────────────────────────────────────────────────────
@@ -26,15 +21,6 @@ function loadConfig() {
   try { return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')); } catch { return {}; }
 }
 function saveConfig(c) { fs.writeFileSync(CONFIG_FILE, JSON.stringify(c, null, 2)); }
-
-function writeEnvFile(c) {
-  const lines = Object.entries(c).filter(([k]) => k !== 'ADMIN_PASSWORD').map(([k, v]) => `${k}=${v}`);
-  fs.writeFileSync(CONFIG_ENV, lines.join('\n') + '\n');
-}
-
-function restartRsshub() {
-  try { execSync('docker restart mkitty-rsshub', { timeout: 30000 }); return true; } catch { return false; }
-}
 
 // ── Feeds ─────────────────────────────────────────────────────────────────
 function loadFeeds() {
@@ -156,12 +142,9 @@ client.on('messageCreate', async (msg) => {
       else { cfg[s.key] = value; if (s.sensitive) await msg.reply(`${s.label} saved.`); }
       state.step++;
       if (state.step >= SETUP_STEPS.length) {
-        saveConfig(cfg); writeEnvFile(cfg); setupState.delete(msg.author.id);
-        const embed = new EmbedBuilder().setColor(0x57F287).setTitle('Setup Complete').setDescription('All values saved. RSSHub restarting...');
+        saveConfig(cfg); setupState.delete(msg.author.id);
+        const embed = new EmbedBuilder().setColor(0x57F287).setTitle('Setup Complete').setDescription('All values saved. Add feeds with `!addfeed`.');
         await msg.reply({ embeds: [embed] });
-        const ok = restartRsshub();
-        if (ok) await msg.channel.send('RSSHub restarted. Add feeds with `!addfeed`.');
-        else await msg.channel.send('RSSHub restart failed — check server logs.');
         return;
       }
       const ns = SETUP_STEPS[state.step];
@@ -247,9 +230,8 @@ client.on('messageCreate', async (msg) => {
     if (spaceIdx < 0) return msg.reply('Usage: `!config set <KEY> <value>`');
     const key = rest.slice(0, spaceIdx).toUpperCase();
     const value = rest.slice(spaceIdx + 1).trim();
-    cfg[key] = value; saveConfig(cfg); writeEnvFile(cfg);
+    cfg[key] = value; saveConfig(cfg);
     await msg.reply(`Set \`${key}\` = ${SENSITIVE_KEYS.includes(key) ? '***' : value}`);
-    if (RSSHUB_KEYS.includes(key)) { const ok = restartRsshub(); await msg.reply(ok ? 'RSSHub restarted.' : 'RSSHub restart failed.'); }
     return;
   }
 
@@ -365,12 +347,8 @@ const server = http.createServer(async (req, res) => {
       cfg[k] = String(v);
     }
     saveConfig(cfg);
-    writeEnvFile(cfg);
-    const rsshubChanged = Object.keys(body).some((k) => RSSHUB_KEYS.includes(k));
-    let rsshubRestarted = null;
-    if (rsshubChanged) rsshubRestarted = restartRsshub();
     if (body.DISCORD_TOKEN && !client.isReady()) connectBot();
-    return json(res, 200, { ok: true, rsshubRestarted });
+    return json(res, 200, { ok: true });
   }
 
   if (req.url === '/api/feeds' && req.method === 'GET') {
@@ -404,11 +382,6 @@ const server = http.createServer(async (req, res) => {
       lastCheck: stats.lastCheck, botUser: client.user?.tag || 'Not connected',
       uptime: process.uptime(),
     });
-  }
-
-  if (req.url === '/api/restart-rsshub' && req.method === 'POST') {
-    if (!authed) return json(res, 401, { error: 'Wrong password' });
-    return json(res, 200, { ok: restartRsshub() });
   }
 
   serveStatic(req, res);
