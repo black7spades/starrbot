@@ -127,6 +127,7 @@ a:hover{text-decoration:underline}
   <div id="overviewPage" class="page">
     <h2 id="overviewTitle">Bot Overview</h2>
     <div class="stat-grid" id="overviewStats"></div>
+    <div id="overviewActions"></div>
     <div class="card">
       <h3>Error Log</h3>
       <div class="error-log" id="errorLog"><div class="empty-state" style="padding:20px">No errors</div></div>
@@ -279,7 +280,7 @@ async function showBotOverview(id) {
     ? `<button class="btn btn-danger" onclick="stopBot('${id}')">Stop Bot</button>`
     : `<button class="btn btn-success" onclick="startBot('${id}')" ${!hasToken?'disabled title="Set token first"':''}>Start Bot</button>`;
 
-  document.getElementById('overviewStats').insertAdjacentHTML('afterend', `<div style="display:flex;gap:8px;margin-bottom:16px">${startStop}<button class="btn btn-secondary" onclick="showBotFunctions('${id}')">Configure Functions</button><button class="btn btn-secondary" onclick="showBotSettings('${id}')">Settings</button></div>`);
+  document.getElementById('overviewActions').innerHTML = `<div style="display:flex;gap:8px;margin-bottom:16px">${startStop}<button class="btn btn-secondary" onclick="showBotFunctions('${id}')">Configure Functions</button><button class="btn btn-secondary" onclick="showBotSettings('${id}')">Settings</button></div>`;
 
   showPage('overview');
 }
