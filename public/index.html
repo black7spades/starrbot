@@ -3,341 +3,570 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mkitty Dashboard</title>
+<title>StarrBot</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#1a1a2e;--card:#16213e;--accent:#5865f2;--green:#57f287;--red:#ed4245;--text:#dcddde;--muted:#72767d;--input:#2f3136;--border:#202225}
-body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+:root{--bg:#1a1a2e;--sidebar:#16213e;--card:#1e2a45;--input:#0f1729;--accent:#5865F2;--accent-hover:#4752c4;--text:#e0e0e0;--text-dim:#888;--green:#57F287;--red:#ED4245;--yellow:#FEE75C;--border:#2a3a5c}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden}
 a{color:var(--accent);text-decoration:none}
-.container{max-width:900px;margin:0 auto;padding:20px}
-h1{font-size:1.5rem;margin-bottom:20px}
-h2{font-size:1.1rem;margin-bottom:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+a:hover{text-decoration:underline}
 
-/* Login overlay */
-#login-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100}
-.login-box{background:var(--card);padding:40px;border-radius:12px;text-align:center;width:360px}
-.login-box input{width:100%;padding:12px;border:1px solid var(--border);border-radius:6px;background:var(--input);color:var(--text);font-size:1rem;margin:12px 0}
-.login-box h1{margin-bottom:4px}
+/* ── Sidebar ─────────────────────────────────────────── */
+#sidebar{width:260px;background:var(--sidebar);display:flex;flex-direction:column;border-right:1px solid var(--border);flex-shrink:0}
+.sidebar-header{padding:20px 16px 12px;border-bottom:1px solid var(--border)}
+.sidebar-header h1{font-size:18px;font-weight:700;color:#fff}
+.sidebar-header span{color:var(--accent);font-size:12px}
+.sidebar-bots{flex:1;overflow-y:auto;padding:8px}
+.sidebar-bots h3{font-size:11px;text-transform:uppercase;color:var(--text-dim);padding:8px 8px 4px;letter-spacing:0.5px}
+.bot-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background 0.15s}
+.bot-item:hover{background:rgba(88,101,242,0.1)}
+.bot-item.active{background:rgba(88,101,242,0.2)}
+.bot-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.bot-dot.stopped{background:#555}
+.bot-dot.running{background:var(--green)}
+.bot-dot.error{background:var(--red)}
+.bot-dot.starting{background:var(--yellow);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.bot-name{font-size:14px;font-weight:500}
+.sidebar-footer{padding:12px;border-top:1px solid var(--border)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border:none;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent-hover)}
+.btn-danger{background:var(--red);color:#fff}.btn-danger:hover{background:#c03537}
+.btn-secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}.btn-secondary:hover{background:#253555}
+.btn-success{background:var(--green);color:#111}.btn-success:hover{background:#45c774}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-full{width:100%}
+.sidebar-btn{background:var(--card);color:var(--text);border:1px solid var(--border);padding:10px;border-radius:8px;font-size:13px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px;width:100%;margin-top:8px;transition:background 0.15s}
+.sidebar-btn:hover{background:rgba(88,101,242,0.1)}
 
-/* Nav */
-.nav{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
-.nav button{padding:8px 16px;border:none;border-radius:6px;background:var(--card);color:var(--muted);cursor:pointer;font-size:.9rem}
-.nav button.active{background:var(--accent);color:#fff}
-.section{display:none}
-.section.active{display:block}
-
-/* Cards */
-.card{background:var(--card);border-radius:10px;padding:20px;margin-bottom:16px}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
-.stat{text-align:center;padding:16px;background:var(--bg);border-radius:8px}
-.stat .num{font-size:1.8rem;font-weight:700;color:var(--accent)}
-.stat .label{font-size:.8rem;color:var(--muted);margin-top:4px}
-
-/* Forms */
-.form-row{display:flex;gap:8px;margin-bottom:12px}
-.form-row input{flex:1;padding:10px;border:1px solid var(--border);border-radius:6px;background:var(--input);color:var(--text);font-size:.95rem}
-.btn{padding:10px 20px;border:none;border-radius:6px;cursor:pointer;font-size:.95rem;font-weight:600}
-.btn-primary{background:var(--accent);color:#fff}
-.btn-danger{background:var(--red);color:#fff}
-.btn-sm{padding:6px 12px;font-size:.8rem}
-.btn:hover{opacity:.85}
-
-/* Feed list */
-.feed-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg);border-radius:8px;margin-bottom:8px}
-.feed-item .platform{font-size:1.2rem;width:32px;text-align:center}
-.feed-item .url{flex:1;font-size:.9rem;word-break:break-all}
-.feed-item .url small{color:var(--muted)}
-
-/* Config */
-.config-grid{display:grid;gap:12px}
-.config-row{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg);border-radius:8px}
-.config-row label{min-width:160px;font-weight:600;font-size:.9rem}
-.config-row input{flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--input);color:var(--text);font-size:.9rem}
-.config-row .hint{font-size:.75rem;color:var(--muted);margin-top:4px}
-
-/* Setup */
-.setup-step{padding:16px;background:var(--bg);border-radius:8px;margin-bottom:12px;border-left:3px solid var(--border)}
-.setup-step.done{border-left-color:var(--green)}
-.setup-step.current{border-left-color:var(--accent)}
-.setup-step .step-num{font-size:.75rem;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
-.setup-step .step-title{font-weight:600;margin-bottom:4px}
-.setup-step .step-desc{font-size:.85rem;color:var(--muted);margin-bottom:8px}
-.setup-step input{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--input);color:var(--text);font-size:.9rem}
-
-/* Toast */
-.toast{position:fixed;bottom:20px;right:20px;padding:12px 20px;border-radius:8px;color:#fff;font-size:.9rem;z-index:999;animation:fadeIn .3s}
-.toast.success{background:var(--green);color:#000}
-.toast.error{background:var(--red)}
+/* ── Main Content ────────────────────────────────────── */
+#main{flex:1;overflow-y:auto;padding:32px}
+.page{display:none;max-width:900px;margin:0 auto}
+.page.active{display:block}
+.page h2{font-size:22px;margin-bottom:20px}
+.page h3{font-size:16px;margin:16px 0 8px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.stat-card .value{font-size:28px;font-weight:700;color:#fff}
+.stat-card .label{font-size:12px;color:var(--text-dim);margin-top:4px}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:13px;font-weight:500;margin-bottom:4px;color:var(--text-dim)}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;background:var(--input);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:14px}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--accent)}
+.form-hint{font-size:11px;color:var(--text-dim);margin-top:3px}
+.form-row{display:flex;gap:12px}
+.form-row>*{flex:1}
+.toast{position:fixed;bottom:20px;right:20px;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:500;z-index:1000;animation:fadeIn 0.2s}
+.toast-success{background:var(--green);color:#111}
+.toast-error{background:var(--red);color:#fff}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.error-log{max-height:300px;overflow-y:auto;font-family:monospace;font-size:12px;background:var(--input);border-radius:6px;padding:12px}
+.error-log .entry{padding:4px 0;border-bottom:1px solid var(--border)}
+.error-log .time{color:var(--text-dim)}
+.source-list{display:flex;flex-direction:column;gap:8px}
+.source-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--input);border-radius:6px}
+.source-item .url{flex:1;font-size:13px;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.source-item .label{font-size:12px;color:var(--text-dim);min-width:80px}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-dim)}
+.empty-state h3{color:var(--text);margin-bottom:8px}
 
-@media(max-width:600px){.config-row{flex-direction:column;align-items:stretch}.config-row label{min-width:0}}
+/* ── Wizard ──────────────────────────────────────────── */
+.wizard{max-width:600px;margin:0 auto}
+.wizard .step-indicator{display:flex;gap:4px;margin-bottom:24px}
+.wizard .step-dot{flex:1;height:4px;background:var(--border);border-radius:2px}
+.wizard .step-dot.done{background:var(--accent)}
+.wizard .step-dot.active{background:var(--green)}
+.wizard h2{font-size:20px;margin-bottom:4px}
+.wizard .subtitle{color:var(--text-dim);margin-bottom:20px}
+.wizard .step-actions{display:flex;gap:8px;margin-top:20px}
+.instructions{background:var(--input);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:13px;line-height:1.6}
+.instructions code{background:var(--card);padding:2px 6px;border-radius:4px;font-size:12px}
+.instructions a{color:var(--accent)}
 </style>
 </head>
 <body>
 
-<!-- Login overlay (only shown if password is set) -->
-<div id="login-overlay" style="display:none">
-  <div class="login-box">
-    <h1>Mkitty</h1>
-    <p style="color:var(--muted);margin-bottom:16px">Dashboard</p>
-    <input type="password" id="password" placeholder="Admin password" autofocus>
-    <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Enter</button>
-    <p id="login-error" style="color:var(--red);margin-top:8px;font-size:.85rem"></p>
+<div id="sidebar">
+  <div class="sidebar-header">
+    <h1>StarrBot</h1>
+    <span>multi-bot dashboard</span>
+  </div>
+  <div class="sidebar-bots">
+    <h3>Bots</h3>
+    <div id="botList"></div>
+  </div>
+  <div class="sidebar-footer">
+    <button class="sidebar-btn" onclick="showAddBot()">+ Add Bot</button>
+    <button class="sidebar-btn" onclick="showPage('global-settings')">Settings</button>
   </div>
 </div>
 
-<div class="container">
-  <h1>Mkitty Dashboard</h1>
-  <div class="nav" id="main-nav">
-    <button class="active" onclick="showTab('setup')">Setup</button>
-    <button onclick="showTab('stats')">Stats</button>
-    <button onclick="showTab('feeds')">Feeds</button>
-    <button onclick="showTab('config')">Config</button>
-  </div>
-
-  <!-- Setup Wizard -->
-  <div id="tab-setup" class="section active">
-    <div class="card">
-      <h2>Setup</h2>
-      <p style="font-size:.9rem;color:var(--muted);margin-bottom:16px" id="setup-intro">
-        Fill in each value below. The bot connects to Discord once you save the token.
-      </p>
-      <div id="setup-steps"></div>
-      <div style="margin-top:16px">
-        <button class="btn btn-primary" onclick="runSetup()">Save & Connect</button>
+<div id="main">
+  <!-- Login -->
+  <div id="loginPage" class="page active" style="display:none">
+    <div style="max-width:360px;margin:100px auto;text-align:center">
+      <h2>StarrBot</h2>
+      <p style="color:var(--text-dim);margin:8px 0 20px">Enter password to continue</p>
+      <div class="form-group">
+        <input type="password" id="loginPw" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
       </div>
-      <p id="setup-status" style="margin-top:12px;font-size:.85rem;color:var(--green)"></p>
+      <button class="btn btn-primary btn-full" onclick="doLogin()">Login</button>
     </div>
   </div>
 
-  <!-- Stats -->
-  <div id="tab-stats" class="section">
-    <div class="stats" id="stats-grid"></div>
-  </div>
-
-  <!-- Feeds -->
-  <div id="tab-feeds" class="section">
-    <div class="card">
-      <h2>Add Feed</h2>
-      <div class="form-row">
-        <input type="text" id="feed-url" placeholder="/tiktok/user/username or full URL">
-        <button class="btn btn-primary" onclick="addFeed()">Add</button>
-      </div>
-      <p style="font-size:.8rem;color:var(--muted)">Prefix with / to auto-add your RSSHub URL. Examples: /tiktok/user/name, /instagram/user/name, /twitch/live/name</p>
-    </div>
-    <div class="card">
-      <h2>Monitored Feeds</h2>
-      <div id="feed-list"></div>
+  <!-- Onboarding Wizard -->
+  <div id="onboardingPage" class="page">
+    <div class="wizard">
+      <div class="step-indicator" id="wizardSteps"></div>
+      <div id="wizardContent"></div>
     </div>
   </div>
 
-  <!-- Config -->
-  <div id="tab-config" class="section">
+  <!-- Bot Overview -->
+  <div id="overviewPage" class="page">
+    <h2 id="overviewTitle">Bot Overview</h2>
+    <div class="stat-grid" id="overviewStats"></div>
     <div class="card">
-      <h2>Configuration</h2>
-      <div class="config-grid" id="config-grid"></div>
-      <div style="margin-top:16px;display:flex;gap:8px">
-        <button class="btn btn-primary" onclick="saveConfig()">Save Config</button>
-        <button class="btn" style="background:var(--border);color:var(--text)" onclick="restartRsshub()">Restart RSSHub</button>
+      <h3>Error Log</h3>
+      <div class="error-log" id="errorLog"><div class="empty-state" style="padding:20px">No errors</div></div>
+    </div>
+  </div>
+
+  <!-- Functions -->
+  <div id="functionsPage" class="page">
+    <h2 id="functionsTitle">Functions</h2>
+    <div id="functionsContent"></div>
+  </div>
+
+  <!-- Bot Settings -->
+  <div id="botSettingsPage" class="page">
+    <h2>Bot Settings</h2>
+    <div class="card">
+      <div class="form-group">
+        <label>Bot Name</label>
+        <input type="text" id="settingName">
       </div>
+      <div class="form-group">
+        <label>Bot Token</label>
+        <input type="password" id="settingToken" placeholder="Leave empty to keep current">
+        <div class="form-hint">Bot tokens are masked in the dashboard and API responses</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button class="btn btn-primary" onclick="saveBotSettings()">Save</button>
+        <button class="btn btn-danger" onclick="deleteCurrentBot()">Delete Bot</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Settings -->
+  <div id="globalSettingsPage" class="page">
+    <h2>Global Settings</h2>
+    <div class="card">
+      <div class="form-group">
+        <label>Admin Password</label>
+        <input type="password" id="globalPw" placeholder="Set or change password">
+        <div class="form-hint">Required for dashboard and API access</div>
+      </div>
+      <button class="btn btn-primary" onclick="saveGlobalPw()">Save Password</button>
     </div>
   </div>
 </div>
 
 <script>
 let pw = '';
-const SENSITIVE = ['IG_PASSWORD','DISCORD_TOKEN','YOUTUBE_KEY','ADMIN_PASSWORD'];
-const HINTS = {
-  DISCORD_TOKEN: 'From https://discord.com/developers/applications → Bot → Reset Token',
-  DISCORD_CLIENT_ID: 'From https://discord.com/developers/applications → General Information → Application ID',
-  DISCORD_CHANNEL_ID: 'Right-click channel in Discord → Copy Channel ID (enable Developer Mode in Settings → Advanced)',
-  ADMIN_CHANNEL_ID: 'Right-click admin-only channel → Copy Channel ID',
-  ADMIN_ROLE_ID: 'Right-click role in Server Settings → Copy Role ID. Leave empty = everyone is admin.',
-  IG_USERNAME: 'Instagram username to monitor (no @)',
-  IG_PASSWORD: 'Instagram password. 2FA must be OFF. Use a burner account.',
-  YOUTUBE_KEY: 'Google Cloud Console → APIs & Services → Library → Enable YouTube Data API v3 → Credentials → Create API Key',
-  RSSHUB_BASE_URL: 'Your RSSHub URL. Leave empty for default (http://rsshub:1200)',
-  CHECK_INTERVAL: 'Minutes between feed checks (default: 15)',
-  ADMIN_PASSWORD: 'Password to access this dashboard. Leave empty for no password.',
-};
-const SETUP_ORDER = ['DISCORD_TOKEN','DISCORD_CLIENT_ID','DISCORD_CHANNEL_ID','ADMIN_CHANNEL_ID','ADMIN_ROLE_ID','IG_USERNAME','IG_PASSWORD','YOUTUBE_KEY','RSSHUB_BASE_URL','ADMIN_PASSWORD'];
+let bots = [];
+let selectedBot = null;
+let wizardState = { step: 0, token: '', clientId: '', name: '', serverId: '', botInfo: null };
 
-async function api(url, method, body) {
-  const opts = { method, headers: { 'Content-Type': 'application/json', 'X-Admin-Password': pw } };
-  if (body) opts.body = JSON.stringify(body);
-  const r = await fetch(url, opts);
-  const data = await r.json();
-  if (!r.ok) throw new Error(data.error || 'Request failed');
-  return data;
-}
+const API = {
+  async get(url) { return fetch(url, { headers: { 'X-Admin-Password': pw } }).then(r => r.json()); },
+  async post(url, body) { return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Password': pw }, body: JSON.stringify(body) }).then(r => r.json()); },
+  async put(url, body) { return fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Admin-Password': pw }, body: JSON.stringify(body) }).then(r => r.json()); },
+  async del(url) { return fetch(url, { method: 'DELETE', headers: { 'X-Admin-Password': pw } }).then(r => r.json()); },
+};
 
 function toast(msg, type='success') {
   const el = document.createElement('div');
-  el.className = `toast ${type}`;
+  el.className = `toast toast-${type}`;
   el.textContent = msg;
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 3000);
 }
 
-function doLogin() {
-  pw = document.getElementById('password').value;
-  api('/api/stats', 'GET').then(() => {
-    document.getElementById('login-overlay').style.display = 'none';
-    loadAll();
-  }).catch(e => {
-    document.getElementById('login-error').textContent = e.message || 'Wrong password';
-  });
-}
-document.getElementById('password')?.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-
-function showTab(name) {
-  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelector(`.nav button[onclick*="${name}"]`).classList.add('active');
-  document.getElementById(`tab-${name}`).classList.add('active');
-  if (name === 'stats') loadStats();
-  if (name === 'feeds') loadFeeds();
-  if (name === 'config') loadConfig();
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById(id + 'Page');
+  if (el) el.classList.add('active');
 }
 
-async function loadAll() { loadStats(); loadFeeds(); }
-
-async function loadStats() {
-  try {
-    const s = await api('/api/stats', 'GET');
-    document.getElementById('stats-grid').innerHTML = `
-      <div class="stat"><div class="num">${s.feeds}</div><div class="label">Feeds</div></div>
-      <div class="stat"><div class="num">${s.postsSent}</div><div class="label">Posts Sent</div></div>
-      <div class="stat"><div class="num">${s.errors}</div><div class="label">Errors</div></div>
-      <div class="stat"><div class="num">${s.lastCheck ? timeSince(s.lastCheck) : 'Never'}</div><div class="label">Last Check</div></div>
-      <div class="stat"><div class="num">${s.botUser}</div><div class="label">Bot</div></div>
-      <div class="stat"><div class="num">${Math.floor(s.uptime / 3600)}h ${Math.floor((s.uptime % 3600) / 60)}m</div><div class="label">Uptime</div></div>
-    `;
-  } catch {}
-}
-
-function timeSince(d) {
-  const s = Math.floor((Date.now() - new Date(d)) / 1000);
-  if (s < 60) return `${s}s ago`;
-  if (s < 3600) return `${Math.floor(s/60)}m ago`;
-  return `${Math.floor(s/3600)}h ago`;
-}
-
-async function loadFeeds() {
-  try {
-    const feeds = await api('/api/feeds', 'GET');
-    const el = document.getElementById('feed-list');
-    if (!feeds.length) { el.innerHTML = '<p style="color:var(--muted)">No feeds yet. Add one above.</p>'; return; }
-    el.innerHTML = feeds.map(f => `
-      <div class="feed-item">
-        <div class="platform">${f.platform.icon}</div>
-        <div class="url">${f.url}<br><small>${f.platform.name}</small></div>
-        <button class="btn btn-danger btn-sm" onclick="removeFeed(${f.index})">Remove</button>
-      </div>
-    `).join('');
-  } catch {}
-}
-
-async function addFeed() {
-  const input = document.getElementById('feed-url');
-  const url = input.value.trim();
-  if (!url) return;
-  try { await api('/api/feeds', 'POST', { url }); input.value = ''; toast('Feed added'); loadFeeds(); }
-  catch (e) { toast(e.message, 'error'); }
-}
-
-async function removeFeed(idx) {
-  try { await api(`/api/feeds/${idx}`, 'DELETE'); toast('Feed removed'); loadFeeds(); }
-  catch (e) { toast(e.message, 'error'); }
-}
-
-async function loadConfig() {
-  try {
-    const data = await api('/api/config', 'GET');
-    const grid = document.getElementById('config-grid');
-    const allKeys = [...new Set([...SETUP_ORDER, ...Object.keys(data)])];
-    grid.innerHTML = allKeys.map(k => `
-      <div class="config-row">
-        <label>${k.replace(/_/g, ' ')}</label>
-        <div>
-          <input type="${SENSITIVE.includes(k) ? 'password' : 'text'}" id="cfg-${k}" value="${data[k] || ''}" placeholder="${k}">
-          ${HINTS[k] ? `<div class="hint">${HINTS[k]}</div>` : ''}
-        </div>
-      </div>
-    `).join('');
-  } catch {}
-}
-
-async function saveConfig() {
-  const allKeys = [...new Set([...SETUP_ORDER, ...Object.keys(await api('/api/config', 'GET'))])];
-  const body = {};
-  for (const k of allKeys) {
-    const v = document.getElementById(`cfg-${k}`)?.value;
-    if (v !== undefined && v !== '') body[k] = v;
-  }
-  try {
-    const r = await api('/api/config', 'POST', body);
-    toast(r.rsshubRestarted ? 'Saved. RSSHub restarted.' : 'Saved.');
-    loadConfig();
-  } catch (e) { toast(e.message, 'error'); }
-}
-
-function buildSetup() {
-  const el = document.getElementById('setup-steps');
-  el.innerHTML = SETUP_ORDER.map((k, i) => `
-    <div class="setup-step" id="step-${i}">
-      <div class="step-num">Step ${i + 1} of ${SETUP_ORDER.length}</div>
-      <div class="step-title">${k.replace(/_/g, ' ')}</div>
-      <div class="step-desc">${HINTS[k] || ''}</div>
-      <input type="${SENSITIVE.includes(k) ? 'password' : 'text'}" id="setup-${k}" placeholder="${k === 'RSSHUB_BASE_URL' ? 'Leave empty for default' : 'Enter value'}">
+function renderSidebar() {
+  const list = document.getElementById('botList');
+  list.innerHTML = bots.map(b => `
+    <div class="bot-item ${selectedBot === b.id ? 'active' : ''}" onclick="selectBot('${b.id}')">
+      <div class="bot-dot ${b.status}"></div>
+      <span class="bot-name">${esc(b.name)}</span>
     </div>
   `).join('');
 }
 
-async function runSetup() {
-  const body = {};
-  for (const k of SETUP_ORDER) {
-    const v = document.getElementById(`setup-${k}`).value.trim();
-    if (v) body[k] = v;
-  }
-  if (!body.DISCORD_TOKEN) { toast('Discord Token is required', 'error'); return; }
-  try {
-    const r = await api('/api/config', 'POST', body);
-    document.querySelectorAll('.setup-step').forEach(s => s.classList.add('done'));
-    document.getElementById('setup-status').textContent = r.rsshubRestarted ? 'Saved. Bot connected. RSSHub restarted.' : 'Saved. Bot connecting to Discord...';
-    toast(r.rsshubRestarted ? 'Setup complete. RSSHub restarted.' : 'Setup complete.');
-  } catch (e) { toast(e.message, 'error'); }
-}
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
-async function restartRsshub() {
-  try { await api('/api/restart-rsshub', 'POST'); toast('RSSHub restarted'); }
-  catch (e) { toast(e.message, 'error'); }
-}
-
-// ── Init ──────────────────────────────────────────────────────────────────
-(async () => {
-  const status = await api('/api/status', 'GET');
-  if (!status.configured) {
-    // First visit — show setup wizard directly
-    document.getElementById('login-overlay').style.display = 'none';
-    buildSetup();
+// ── Login ──────────────────────────────────────────────
+async function init() {
+  const status = await API.get('/api/status');
+  if (!status.configured && !status.hasPassword) {
+    showPage('onboarding');
+    renderWizard();
     return;
   }
-  // Check if password is required
-  try {
-    await api('/api/stats', 'GET');
-    // No password needed
-    buildSetup();
-    loadAll();
-  } catch (e) {
-    if (e.message === 'Wrong password') {
-      document.getElementById('login-overlay').style.display = 'flex';
-      buildSetup();
-    } else {
-      buildSetup();
-    }
+  if (status.hasPassword && !pw) {
+    document.getElementById('loginPage').style.display = 'block';
+    showPage('login');
+    return;
   }
-})();
+  await loadBots();
+}
+
+async function doLogin() {
+  pw = document.getElementById('loginPw').value;
+  const res = await API.post('/api/auth/login', { password: pw });
+  if (res.error) { toast(res.error, 'error'); return; }
+  document.getElementById('loginPage').style.display = 'none';
+  await loadBots();
+}
+
+// ── Bots ───────────────────────────────────────────────
+async function loadBots() {
+  bots = await API.get('/api/bots');
+  renderSidebar();
+  if (bots.length === 0) { showAddBot(); }
+  else if (!selectedBot || !bots.find(b => b.id === selectedBot)) { selectBot(bots[0].id); }
+}
+
+function selectBot(id) {
+  selectedBot = id;
+  renderSidebar();
+  showBotOverview(id);
+}
+
+async function showBotOverview(id) {
+  const bot = bots.find(b => b.id === id);
+  if (!bot) return;
+  document.getElementById('overviewTitle').textContent = bot.name;
+  const stats = await API.get(`/api/bots/${id}/stats`);
+  const logs = await API.get(`/api/bots/${id}/logs`);
+  const config = await API.get(`/api/bots/${id}`);
+
+  document.getElementById('overviewStats').innerHTML = `
+    <div class="stat-card"><div class="value" style="color:${bot.status==='running'?'var(--green)':bot.status==='error'?'var(--red)':'#555'}">${bot.status}</div><div class="label">Status</div></div>
+    <div class="stat-card"><div class="value">${stats.postsSent||0}</div><div class="label">Posts Sent</div></div>
+    <div class="stat-card"><div class="value">${stats.errors||0}</div><div class="label">Errors</div></div>
+    <div class="stat-card"><div class="value">${stats.lastCheck ? timeSince(stats.lastCheck) : 'Never'}</div><div class="label">Last Check</div></div>
+    <div class="stat-card"><div class="value">${stats.ticketsCreated||0}</div><div class="label">Tickets</div></div>
+    <div class="stat-card"><div class="value">${(stats.functions||[]).length}</div><div class="label">Active Functions</div></div>
+  `;
+
+  const logEl = document.getElementById('errorLog');
+  if (logs.length) {
+    logEl.innerHTML = logs.map(l => `<div class="entry"><span class="time">${new Date(l.timestamp).toLocaleTimeString()}</span> ${esc(l.message)}</div>`).join('');
+  } else {
+    logEl.innerHTML = '<div class="empty-state" style="padding:20px">No logs</div>';
+  }
+
+  const hasToken = !!config.token;
+  const startStop = bot.status === 'running'
+    ? `<button class="btn btn-danger" onclick="stopBot('${id}')">Stop Bot</button>`
+    : `<button class="btn btn-success" onclick="startBot('${id}')" ${!hasToken?'disabled title="Set token first"':''}>Start Bot</button>`;
+
+  document.getElementById('overviewStats').insertAdjacentHTML('afterend', `<div style="display:flex;gap:8px;margin-bottom:16px">${startStop}<button class="btn btn-secondary" onclick="showBotFunctions('${id}')">Configure Functions</button><button class="btn btn-secondary" onclick="showBotSettings('${id}')">Settings</button></div>`);
+
+  showPage('overview');
+}
+
+async function startBot(id) {
+  toast('Starting bot...');
+  const res = await API.post(`/api/bots/${id}/start`);
+  if (res.error) { toast(res.error, 'error'); }
+  await loadBots();
+  if (selectedBot) showBotOverview(id);
+}
+
+async function stopBot(id) {
+  await API.post(`/api/bots/${id}/stop`);
+  await loadBots();
+  if (selectedBot) showBotOverview(id);
+}
+
+// ── Add Bot ────────────────────────────────────────────
+function showAddBot() {
+  wizardState = { step: 0, token: '', clientId: '', name: '', serverId: '', botInfo: null };
+  showPage('onboarding');
+  renderWizard();
+}
+
+const WIZARD_STEPS = ['Create Bot', 'Credentials', 'Invite', 'Done'];
+
+function renderWizard() {
+  const ind = document.getElementById('wizardSteps');
+  ind.innerHTML = WIZARD_STEPS.map((_, i) => `<div class="step-dot ${i < wizardState.step ? 'done' : i === wizardState.step ? 'active' : ''}"></div>`).join('');
+
+  const c = document.getElementById('wizardContent');
+  const s = wizardState.step;
+
+  if (s === 0) {
+    c.innerHTML = `
+      <h2>Create a Discord Bot</h2>
+      <p class="subtitle">Step 1 of ${WIZARD_STEPS.length}</p>
+      <div class="instructions">
+        <ol style="padding-left:16px">
+          <li>Go to <a href="https://discord.com/developers/applications" target="_blank">Discord Developer Portal</a></li>
+          <li>Click <strong>New Application</strong> and give it a name</li>
+          <li>Go to <strong>Bot</strong> in the left sidebar</li>
+          <li>Click <strong>Reset Token</strong> and copy the token</li>
+          <li>Under <strong>Privileged Gateway Intents</strong>, enable:<br>- Message Content Intent<br>- Server Members Intent</li>
+        </ol>
+      </div>
+      <div class="step-actions">
+        <button class="btn btn-primary" onclick="wizardState.step=1;renderWizard()">Next: Enter Credentials</button>
+      </div>
+    `;
+  } else if (s === 1) {
+    c.innerHTML = `
+      <h2>Enter Credentials</h2>
+      <p class="subtitle">Step 2 of ${WIZARD_STEPS.length}</p>
+      <div class="form-group">
+        <label>Bot Name</label>
+        <input type="text" id="wizName" value="${esc(wizardState.name)}" placeholder="e.g. Mkitty">
+      </div>
+      <div class="form-group">
+        <label>Bot Token</label>
+        <input type="password" id="wizToken" value="${esc(wizardState.token)}" placeholder="Paste your bot token">
+      </div>
+      <div class="form-group">
+        <label>Application (Client) ID</label>
+        <input type="text" id="wizClientId" value="${esc(wizardState.clientId)}" placeholder="Found on the General Information page">
+      </div>
+      <div id="wizValidation" style="margin:8px 0;font-size:13px"></div>
+      <div class="step-actions">
+        <button class="btn btn-secondary" onclick="wizardState.step=0;renderWizard()">Back</button>
+        <button class="btn btn-primary" onclick="validateAndNext()">Validate & Next</button>
+      </div>
+    `;
+  } else if (s === 2) {
+    const cid = wizardState.clientId;
+    const oauthUrl = `https://discord.com/api/oauth2/authorize?client_id=${cid}&permissions=2147485696&scope=bot%20applications.commands`;
+    c.innerHTML = `
+      <h2>Invite to Server</h2>
+      <p class="subtitle">Step 3 of ${WIZARD_STEPS.length}</p>
+      <div class="instructions">
+        <p>Click the link below to invite your bot to a Discord server:</p>
+        <p style="margin:12px 0"><a href="${oauthUrl}" target="_blank" class="btn btn-primary">Invite Bot to Server</a></p>
+        <p style="color:var(--text-dim);font-size:12px">Make sure you have <strong>Manage Server</strong> permission on the target server.</p>
+      </div>
+      <div class="step-actions">
+        <button class="btn btn-secondary" onclick="wizardState.step=1;renderWizard()">Back</button>
+        <button class="btn btn-primary" onclick="wizardState.step=3;renderWizard()">Next: Finish</button>
+      </div>
+    `;
+  } else if (s === 3) {
+    c.innerHTML = `
+      <h2>All Done!</h2>
+      <p class="subtitle">Step ${WIZARD_STEPS.length} of ${WIZARD_STEPS.length}</p>
+      <div class="instructions">
+        <p>Your bot <strong>${esc(wizardState.name)}</strong> has been created in StarrBot.</p>
+        <p style="margin:8px 0">It's currently <strong>stopped</strong>. You can:</p>
+        <ul style="padding-left:16px">
+          <li>Configure functions (Updates, Tickets) from the <strong>Functions</strong> tab</li>
+          <li>Click <strong>Start Bot</strong> to bring it online</li>
+        </ul>
+      </div>
+      <div class="step-actions">
+        <button class="btn btn-success" onclick="finishWizard()">Create Bot & Go to Dashboard</button>
+      </div>
+    `;
+  }
+}
+
+async function validateAndNext() {
+  wizardState.name = document.getElementById('wizName').value.trim();
+  wizardState.token = document.getElementById('wizToken').value.trim();
+  wizardState.clientId = document.getElementById('wizClientId').value.trim();
+  if (!wizardState.name || !wizardState.token || !wizardState.clientId) { toast('All fields required', 'error'); return; }
+
+  const el = document.getElementById('wizValidation');
+  el.innerHTML = '<span style="color:var(--yellow)">Validating token...</span>';
+  const res = await API.post('/api/validate-token', { token: wizardState.token });
+  if (!res.valid) { el.innerHTML = `<span style="color:var(--red)">Invalid token: ${esc(res.error)}</span>`; return; }
+  el.innerHTML = `<span style="color:var(--green)">Valid! Bot: ${esc(res.bot.username)}#${res.bot.discriminator || '0'}</span>`;
+  wizardState.step = 2;
+  renderWizard();
+}
+
+async function finishWizard() {
+  const res = await API.post('/api/bots', { name: wizardState.name, token: wizardState.token, clientId: wizardState.clientId });
+  if (res.error) { toast(res.error, 'error'); return; }
+  toast('Bot created!');
+  await loadBots();
+  selectBot(res.id);
+}
+
+// ── Functions Page ─────────────────────────────────────
+async function showBotFunctions(id) {
+  document.getElementById('functionsTitle').textContent = `${bots.find(b=>b.id===id)?.name || ''} — Functions`;
+  const content = document.getElementById('functionsContent');
+
+  const updates = await API.get(`/api/bots/${id}/functions/updates`);
+  const tickets = await API.get(`/api/bots/${id}/functions/tickets`);
+
+  content.innerHTML = `
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div><strong>📡 Updates</strong><br><span style="color:var(--text-dim);font-size:12px">Monitor social feeds and post updates</span></div>
+        <button class="btn btn-sm ${updates?.enabled ? 'btn-success' : 'btn-secondary'}" onclick="toggleFunc('${id}','updates',${!updates?.enabled})">${updates?.enabled ? 'Enabled' : 'Disabled'}</button>
+      </div>
+      <div class="form-group"><label>RSSHub URL</label><input type="text" id="funcRsshub" value="${esc(updates?.rsshubUrl||'http://rsshub:1200')}"></div>
+      <div class="form-group"><label>Check Interval (minutes)</label><input type="number" id="funcInterval" value="${updates?.checkInterval||15}"></div>
+      <div class="form-group"><label>Post Channel ID</label><input type="text" id="funcChannel" value="${esc(updates?.channelId||'')}"><div class="form-hint">Right-click channel → Copy Channel ID</div></div>
+      <h3>Sources</h3>
+      <div class="source-list" id="sourceList">
+        ${(updates?.sources||[]).map((s,i) => `<div class="source-item"><span class="label">${esc(s.label||'')}</span><span class="url">${esc(s.url)}</span><button class="btn btn-sm btn-danger" onclick="removeSource('${id}',${i})">Remove</button></div>`).join('') || '<div style="color:var(--text-dim);font-size:13px;padding:8px">No sources configured</div>'}
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <input type="text" id="newSourceUrl" placeholder="/tiktok/user/username or full URL" style="flex:1;padding:8px;background:var(--input);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px">
+        <input type="text" id="newSourceLabel" placeholder="Label (optional)" style="width:120px;padding:8px;background:var(--input);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px">
+        <button class="btn btn-sm btn-primary" onclick="addSource('${id}')">Add</button>
+      </div>
+      <div style="margin-top:12px"><button class="btn btn-primary" onclick="saveUpdates('${id}')">Save Updates Config</button></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div><strong>🎫 Tickets</strong><br><span style="color:var(--text-dim);font-size:12px">Support ticket system with threads</span></div>
+        <button class="btn btn-sm ${tickets?.enabled ? 'btn-success' : 'btn-secondary'}" onclick="toggleFunc('${id}','tickets',${!tickets?.enabled})">${tickets?.enabled ? 'Enabled' : 'Disabled'}</button>
+      </div>
+      <div class="form-group"><label>Admin Channel ID</label><input type="text" id="funcTicketAdmin" value="${esc(tickets?.adminChannelId||'')}"><div class="form-hint">Where tickets are created</div></div>
+      <div class="form-group"><label>Admin Role ID</label><input type="text" id="funcTicketRole" value="${esc(tickets?.adminRoleId||'')}"><div class="form-hint">Optional — leave empty for everyone</div></div>
+      <div style="margin-top:12px"><button class="btn btn-primary" onclick="saveTickets('${id}')">Save Tickets Config</button></div>
+    </div>
+  `;
+  showPage('functions');
+}
+
+async function toggleFunc(botId, funcName, enabled) {
+  await API.put(`/api/bots/${botId}/functions/${funcName}`, { enabled });
+  toast(`${funcName} ${enabled ? 'enabled' : 'disabled'}`);
+  showBotFunctions(botId);
+}
+
+async function saveUpdates(botId) {
+  await API.put(`/api/bots/${botId}/functions/updates`, {
+    rsshubUrl: document.getElementById('funcRsshub').value,
+    checkInterval: parseInt(document.getElementById('funcInterval').value) || 15,
+    channelId: document.getElementById('funcChannel').value,
+  });
+  toast('Updates config saved');
+}
+
+async function saveTickets(botId) {
+  await API.put(`/api/bots/${botId}/functions/tickets`, {
+    adminChannelId: document.getElementById('funcTicketAdmin').value,
+    adminRoleId: document.getElementById('funcTicketRole').value,
+  });
+  toast('Tickets config saved');
+}
+
+async function addSource(botId) {
+  const url = document.getElementById('newSourceUrl').value.trim();
+  const label = document.getElementById('newSourceLabel').value.trim();
+  if (!url) return;
+  const config = await API.get(`/api/bots/${botId}/functions/updates`);
+  const sources = config?.sources || [];
+  sources.push({ url, label: label || url, platform: 'auto' });
+  await API.put(`/api/bots/${botId}/functions/updates`, { sources });
+  document.getElementById('newSourceUrl').value = '';
+  document.getElementById('newSourceLabel').value = '';
+  showBotFunctions(botId);
+}
+
+async function removeSource(botId, idx) {
+  const config = await API.get(`/api/bots/${botId}/functions/updates`);
+  const sources = config?.sources || [];
+  sources.splice(idx, 1);
+  await API.put(`/api/bots/${botId}/functions/updates`, { sources });
+  showBotFunctions(botId);
+}
+
+// ── Bot Settings ───────────────────────────────────────
+function showBotSettings(id) {
+  const bot = bots.find(b => b.id === id);
+  if (!bot) return;
+  document.getElementById('settingName').value = bot.name;
+  document.getElementById('settingToken').value = '';
+  showPage('bot-settings');
+}
+
+async function saveBotSettings() {
+  if (!selectedBot) return;
+  const body = { name: document.getElementById('settingName').value };
+  const token = document.getElementById('settingToken').value;
+  if (token) body.token = token;
+  await API.put(`/api/bots/${selectedBot}`, body);
+  toast('Settings saved');
+  await loadBots();
+}
+
+async function deleteCurrentBot() {
+  if (!selectedBot || !confirm('Delete this bot? This cannot be undone.')) return;
+  await API.del(`/api/bots/${selectedBot}`);
+  selectedBot = null;
+  await loadBots();
+  if (bots.length) selectBot(bots[0].id);
+  else showAddBot();
+}
+
+// ── Global Settings ────────────────────────────────────
+async function saveGlobalPw() {
+  const newPw = document.getElementById('globalPw').value;
+  if (!newPw) return;
+  await API.post('/api/auth/password', { password: newPw });
+  pw = newPw;
+  toast('Password updated');
+  document.getElementById('globalPw').value = '';
+}
+
+// ── SSE ────────────────────────────────────────────────
+function connectSSE() {
+  const es = new EventSource('/api/events');
+  es.addEventListener('bot:status', (e) => {
+    const data = JSON.parse(e.data);
+    const bot = bots.find(b => b.id === data.id);
+    if (bot) { bot.status = data.status; bot.error = data.error; }
+    renderSidebar();
+  });
+  es.addEventListener('bot:log', (e) => {
+    const data = JSON.parse(e.data);
+    if (data.id === selectedBot) {
+      const log = document.getElementById('errorLog');
+      if (log) {
+        const empty = log.querySelector('.empty-state');
+        if (empty) empty.remove();
+        log.insertAdjacentHTML('afterbegin', `<div class="entry"><span class="time">${new Date(data.timestamp).toLocaleTimeString()}</span> ${esc(data.message)}</div>`);
+      }
+    }
+  });
+}
+
+function timeSince(ts) {
+  const diff = Date.now() - new Date(ts).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'Just now';
+  if (m < 60) return `${m}m ago`;
+  return `${Math.floor(m/60)}h ${m%60}m ago`;
+}
+
+// ── Init ───────────────────────────────────────────────
+init();
+connectSSE();
 </script>
 </body>
 </html>

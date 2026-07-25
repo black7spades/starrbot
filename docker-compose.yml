@@ -1,7 +1,8 @@
 services:
-  bot:
-    container_name: mkitty-bot
-    image: ghcr.io/black7spades/mkittybot:latest
+  starrbot:
+    container_name: starrbot
+    image: ghcr.io/black7spades/starrbot:latest
+    build: .
     restart: unless-stopped
     ports:
       - "2013:2013"

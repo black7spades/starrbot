@@ -1,6 +1,6 @@
 {
-  "name": "mkitty-discord-bot",
-  "version": "1.0.0",
+  "name": "starrbot",
+  "version": "2.0.0",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

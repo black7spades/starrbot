@@ -1,3 +1,4 @@
-data/config.json
-data/config.env
-!data/.gitkeep
+starrbot.json
+config.json
+feeds.json
+config.env
