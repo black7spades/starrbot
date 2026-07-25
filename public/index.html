@@ -456,24 +456,25 @@ function toast(msg, type = '') {
 
 // ── Login ─────────────────────────────────────────────────────────────────
 async function checkAuth() {
-  const status = await api('/api/status');
-  if (!status.hasUsers) {
-    // First time — show login screen in "create account" mode
-    document.getElementById('loginTitle').textContent = 'Create Admin Account';
-    document.getElementById('loginSubtitle').textContent = 'Set up your StarrBot admin account';
-    document.getElementById('loginOverlay').classList.add('show');
-    return false;
-  }
-  const saved = localStorage.getItem('starrbot-cred');
-  if (saved) {
-    const cred = JSON.parse(saved);
-    try {
-      const data = await api('/api/auth/login', { method: 'POST', body: JSON.stringify(cred) });
-      currentUser = { ...data.user, _password: cred.password };
-      document.getElementById('loginOverlay').classList.remove('show');
-      return true;
-    } catch { localStorage.removeItem('starrbot-cred'); }
-  }
+  try {
+    const status = await api('/api/status');
+    if (!status.hasUsers) {
+      document.getElementById('loginTitle').textContent = 'Create Admin Account';
+      document.getElementById('loginSubtitle').textContent = 'Set up your StarrBot admin account';
+      document.getElementById('loginOverlay').classList.add('show');
+      return false;
+    }
+    const saved = localStorage.getItem('starrbot-cred');
+    if (saved) {
+      const cred = JSON.parse(saved);
+      try {
+        const data = await api('/api/auth/login', { method: 'POST', body: JSON.stringify(cred) });
+        currentUser = { ...data.user, _password: cred.password };
+        document.getElementById('loginOverlay').classList.remove('show');
+        return true;
+      } catch { localStorage.removeItem('starrbot-cred'); }
+    }
+  } catch {}
   document.getElementById('loginOverlay').classList.add('show');
   return false;
 }
