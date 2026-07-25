@@ -16,32 +16,33 @@ a:hover{text-decoration:underline}
 .sidebar-header{padding:20px 16px 12px;border-bottom:1px solid var(--border)}
 .sidebar-header h1{font-size:18px;font-weight:700;color:#fff}
 .sidebar-header span{color:var(--accent);font-size:12px}
-.sidebar-bots{flex:1;overflow-y:auto;padding:8px}
-.sidebar-bots h3{font-size:11px;text-transform:uppercase;color:var(--text-dim);padding:8px 8px 4px;letter-spacing:0.5px}
-.bot-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background 0.15s}
-.bot-item:hover{background:rgba(88,101,242,0.1)}
-.bot-item.active{background:rgba(88,101,242,0.2)}
-.bot-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.sidebar-nav{flex:1;overflow-y:auto;padding:8px}
+.sidebar-nav .section-label{font-size:11px;text-transform:uppercase;color:var(--text-dim);padding:12px 8px 4px;letter-spacing:0.5px}
+.sidebar-nav .section-label:first-child{padding-top:4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;cursor:pointer;transition:background 0.15s;font-size:13px}
+.nav-item:hover{background:rgba(88,101,242,0.1)}
+.nav-item.active{background:rgba(88,101,242,0.2)}
+.nav-item .icon{width:18px;text-align:center;font-size:14px}
+.bot-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .bot-dot.stopped{background:#555}
 .bot-dot.running{background:var(--green)}
 .bot-dot.error{background:var(--red)}
 .bot-dot.starting{background:var(--yellow);animation:pulse 1s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-.bot-name{font-size:14px;font-weight:500}
 .sidebar-footer{padding:12px;border-top:1px solid var(--border)}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border:none;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s}
 .btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent-hover)}
 .btn-danger{background:var(--red);color:#fff}.btn-danger:hover{background:#c03537}
 .btn-secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}.btn-secondary:hover{background:#253555}
 .btn-success{background:var(--green);color:#111}.btn-success:hover{background:#45c774}
-.btn-sm{padding:6px 12px;font-size:12px}
+.btn-sm{padding:5px 10px;font-size:11px}
 .btn-full{width:100%}
 .sidebar-btn{background:var(--card);color:var(--text);border:1px solid var(--border);padding:10px;border-radius:8px;font-size:13px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px;width:100%;margin-top:8px;transition:background 0.15s}
 .sidebar-btn:hover{background:rgba(88,101,242,0.1)}
 
 /* ── Main Content ────────────────────────────────────── */
 #main{flex:1;overflow-y:auto;padding:32px}
-.page{display:none;max-width:900px;margin:0 auto}
+.page{display:none;max-width:1000px;margin:0 auto}
 .page.active{display:block}
 .page h2{font-size:22px;margin-bottom:20px}
 .page h3{font-size:16px;margin:16px 0 8px}
@@ -55,21 +56,31 @@ a:hover{text-decoration:underline}
 .form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;background:var(--input);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:14px}
 .form-group input:focus,.form-group select:focus{outline:none;border-color:var(--accent)}
 .form-hint{font-size:11px;color:var(--text-dim);margin-top:3px}
-.form-row{display:flex;gap:12px}
-.form-row>*{flex:1}
 .toast{position:fixed;bottom:20px;right:20px;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:500;z-index:1000;animation:fadeIn 0.2s}
 .toast-success{background:var(--green);color:#111}
 .toast-error{background:var(--red);color:#fff}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.error-log{max-height:300px;overflow-y:auto;font-family:monospace;font-size:12px;background:var(--input);border-radius:6px;padding:12px}
-.error-log .entry{padding:4px 0;border-bottom:1px solid var(--border)}
-.error-log .time{color:var(--text-dim)}
-.source-list{display:flex;flex-direction:column;gap:8px}
-.source-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--input);border-radius:6px}
-.source-item .url{flex:1;font-size:13px;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.source-item .label{font-size:12px;color:var(--text-dim);min-width:80px}
-.empty-state{text-align:center;padding:60px 20px;color:var(--text-dim)}
-.empty-state h3{color:var(--text);margin-bottom:8px}
+
+/* ── Table ───────────────────────────────────────────── */
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{text-align:left;padding:10px 12px;border-bottom:2px solid var(--border);color:var(--text-dim);font-size:11px;text-transform:uppercase;letter-spacing:0.5px}
+.data-table td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.data-table tr:hover td{background:rgba(88,101,242,0.05)}
+.data-table .actions{display:flex;gap:6px;align-items:center}
+
+/* ── Toggle ──────────────────────────────────────────── */
+.toggle{position:relative;width:36px;height:20px;border-radius:10px;background:#444;cursor:pointer;transition:background 0.2s;flex-shrink:0}
+.toggle.on{background:var(--green)}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform 0.2s}
+.toggle.on::after{transform:translateX(16px)}
+
+/* ── Modal ───────────────────────────────────────────── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:900;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:420px;width:90%}
+.modal h3{font-size:18px;margin-bottom:8px}
+.modal p{color:var(--text-dim);font-size:13px;margin-bottom:16px;line-height:1.5}
+.modal .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
 
 /* ── Wizard ──────────────────────────────────────────── */
 .wizard{max-width:600px;margin:0 auto}
@@ -83,6 +94,30 @@ a:hover{text-decoration:underline}
 .instructions{background:var(--input);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:13px;line-height:1.6}
 .instructions code{background:var(--card);padding:2px 6px;border-radius:4px;font-size:12px}
 .instructions a{color:var(--accent)}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-dim)}
+.empty-state h3{color:var(--text);margin-bottom:8px}
+
+/* ── Badge ───────────────────────────────────────────── */
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
+.badge-green{background:rgba(87,242,135,0.15);color:var(--green)}
+.badge-red{background:rgba(237,66,69,0.15);color:var(--red)}
+.badge-dim{background:rgba(136,136,136,0.15);color:var(--text-dim)}
+
+/* ── Command list ────────────────────────────────────── */
+.cmd-list{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+.cmd-item{display:flex;gap:8px;align-items:baseline;font-size:12px;padding:4px 0}
+.cmd-name{font-family:monospace;color:var(--accent);white-space:nowrap}
+.cmd-desc{color:var(--text-dim)}
+.cmd-perm{font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(136,136,136,0.15);color:var(--text-dim);white-space:nowrap}
+
+/* ── Error log ───────────────────────────────────────── */
+.error-log{max-height:300px;overflow-y:auto;font-family:monospace;font-size:12px;background:var(--input);border-radius:6px;padding:12px}
+.error-log .entry{padding:4px 0;border-bottom:1px solid var(--border)}
+.error-log .time{color:var(--text-dim)}
+.source-list{display:flex;flex-direction:column;gap:8px}
+.source-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--input);border-radius:6px}
+.source-item .url{flex:1;font-size:13px;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.source-item .label{font-size:12px;color:var(--text-dim);min-width:80px}
 </style>
 </head>
 <body>
@@ -92,13 +127,26 @@ a:hover{text-decoration:underline}
     <h1>StarrBot</h1>
     <span>multi-bot dashboard</span>
   </div>
-  <div class="sidebar-bots">
-    <h3>Bots</h3>
-    <div id="botList"></div>
+  <div class="sidebar-nav">
+    <div class="section-label">Management</div>
+    <div class="nav-item active" id="nav-bots" onclick="showBotList()">
+      <span class="icon">&#x1F4E1;</span> Bot Management
+    </div>
+    <div class="section-label">Functions</div>
+    <div id="navFuncLinks"></div>
+    <div class="nav-item" onclick="showFunctionsRegistry()">
+      <span class="icon">&#x1F50D;</span> View All Functions
+    </div>
+    <div class="nav-item" onclick="showFunctionsDeploy()">
+      <span class="icon">&#x2795;</span> Deploy Functions
+    </div>
+    <div class="section-label">System</div>
+    <div class="nav-item" id="nav-settings" onclick="showGlobalSettings()">
+      <span class="icon">&#x2699;</span> Settings
+    </div>
   </div>
   <div class="sidebar-footer">
     <button class="sidebar-btn" onclick="showAddBot()">+ Add Bot</button>
-    <button class="sidebar-btn" onclick="showPage('global-settings')">Settings</button>
   </div>
 </div>
 
@@ -123,9 +171,38 @@ a:hover{text-decoration:underline}
     </div>
   </div>
 
-  <!-- Bot Overview -->
+  <!-- Bot Management List -->
+  <div id="botListPage" class="page">
+    <h2>Bot Management</h2>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="data-table" id="botTable">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Name</th>
+            <th>Servers</th>
+            <th>Errors</th>
+            <th>Functions</th>
+            <th>Enabled</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="botTableBody"></tbody>
+      </table>
+    </div>
+    <div id="botListEmpty" class="empty-state" style="display:none">
+      <h3>No bots yet</h3>
+      <p style="color:var(--text-dim);margin-bottom:16px">Create your first bot to get started</p>
+      <button class="btn btn-primary" onclick="showAddBot()">+ Add Bot</button>
+    </div>
+  </div>
+
+  <!-- Bot Overview (per-bot detail) -->
   <div id="overviewPage" class="page">
-    <h2 id="overviewTitle">Bot Overview</h2>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <button class="btn btn-sm btn-secondary" onclick="showBotList()">&larr; Back</button>
+      <h2 id="overviewTitle" style="margin:0">Bot Overview</h2>
+    </div>
     <div class="stat-grid" id="overviewStats"></div>
     <div id="overviewActions"></div>
     <div class="card">
@@ -134,15 +211,21 @@ a:hover{text-decoration:underline}
     </div>
   </div>
 
-  <!-- Functions -->
+  <!-- Bot Functions Config (per-bot) -->
   <div id="functionsPage" class="page">
-    <h2 id="functionsTitle">Functions</h2>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <button class="btn btn-sm btn-secondary" onclick="showBotList()">&larr; Back</button>
+      <h2 id="functionsTitle" style="margin:0">Functions</h2>
+    </div>
     <div id="functionsContent"></div>
   </div>
 
-  <!-- Bot Settings -->
+  <!-- Bot Settings (per-bot) -->
   <div id="botSettingsPage" class="page">
-    <h2>Bot Settings</h2>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <button class="btn btn-sm btn-secondary" onclick="showBotList()">&larr; Back</button>
+      <h2 style="margin:0">Bot Settings</h2>
+    </div>
     <div class="card">
       <div class="form-group">
         <label>Bot Name</label>
@@ -155,15 +238,44 @@ a:hover{text-decoration:underline}
       </div>
       <div style="display:flex;gap:8px;margin-top:16px">
         <button class="btn btn-primary" onclick="saveBotSettings()">Save</button>
-        <button class="btn btn-danger" onclick="deleteCurrentBot()">Delete Bot</button>
+        <button class="btn btn-danger" onclick="promptDeleteBot(selectedBot)">Delete Bot</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Functions Registry (all functions, commands) -->
+  <div id="funcsRegistryPage" class="page">
+    <h2>All Functions</h2>
+    <div id="funcsRegistryContent"></div>
+  </div>
+
+  <!-- Functions Deploy (which bots have which functions) -->
+  <div id="funcsDeployPage" class="page">
+    <h2>Function Deployment</h2>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="data-table" id="deployTable">
+        <thead>
+          <tr>
+            <th>Function</th>
+            <th>Description</th>
+            <th>Deployed To</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="deployTableBody"></tbody>
+      </table>
+    </div>
+    <div id="deployEmpty" class="empty-state" style="display:none">
+      <h3>No functions registered</h3>
+      <p style="color:var(--text-dim)">Add function modules to the <code>functions/</code> directory</p>
     </div>
   </div>
 
   <!-- Global Settings -->
   <div id="globalSettingsPage" class="page">
-    <h2>Global Settings</h2>
+    <h2>Settings</h2>
     <div class="card">
+      <h3>Account</h3>
       <div class="form-group">
         <label>Admin Password</label>
         <input type="password" id="globalPw" placeholder="Set or change password">
@@ -171,13 +283,52 @@ a:hover{text-decoration:underline}
       </div>
       <button class="btn btn-primary" onclick="saveGlobalPw()">Save Password</button>
     </div>
+    <div class="card">
+      <h3>Command Prefix</h3>
+      <div class="form-group">
+        <label>Global Prefix</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="globalPrefix" maxlength="3" style="width:60px;text-align:center;font-size:18px;font-family:monospace" placeholder="!">
+          <span style="color:var(--text-dim);font-size:13px">Applied to all bots unless overridden per-function</span>
+        </div>
+        <div class="form-hint">Punctuation/special characters only (!, ?, #, ., /, etc)</div>
+      </div>
+      <button class="btn btn-primary" onclick="saveGlobalPrefix()">Save Prefix</button>
+    </div>
+    <div class="card">
+      <h3>Danger Zone</h3>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-danger" onclick="promptResetAll()">Reset Everything</button>
+      </div>
+      <div class="form-hint" style="margin-top:4px">This will delete all bots, functions, and settings</div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <h3 id="deleteModalTitle">Are You Sure?</h3>
+    <p id="deleteModalDesc">This action cannot be undone.</p>
+    <div class="form-group">
+      <label id="deleteModalLabel">Type the bot name to confirm:</label>
+      <input type="text" id="deleteModalInput" placeholder="" oninput="checkDeleteConfirm()">
+    </div>
+    <div id="deleteModalError" style="color:var(--red);font-size:12px;margin-bottom:8px"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('deleteModal')">Cancel</button>
+      <button class="btn btn-danger" id="deleteModalBtn" disabled onclick="confirmDelete()">Delete</button>
+    </div>
   </div>
 </div>
 
 <script>
 let pw = '';
 let bots = [];
+let funcRegistry = [];
 let selectedBot = null;
+let currentPage = 'botList';
+let deleteState = { id: null, name: '', type: 'bot' };
 let wizardState = { step: 0, token: '', clientId: '', name: '', serverId: '', botInfo: null };
 
 const API = {
@@ -201,21 +352,37 @@ function showPage(id) {
   if (el) el.classList.add('active');
 }
 
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function timeSince(ts) {
+  const diff = Date.now() - new Date(ts).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'Just now';
+  if (m < 60) return `${m}m ago`;
+  return `${Math.floor(m/60)}h ${m%60}m ago`;
+}
+
+// ── Sidebar ────────────────────────────────────────────
 function renderSidebar() {
-  const list = document.getElementById('botList');
-  list.innerHTML = bots.map(b => `
-    <div class="bot-item ${selectedBot === b.id ? 'active' : ''}" onclick="selectBot('${b.id}')">
-      <div class="bot-dot ${b.status}"></div>
-      <span class="bot-name">${esc(b.name)}</span>
+  const el = document.getElementById('navFuncLinks');
+  el.innerHTML = funcRegistry.map(f => `
+    <div class="nav-item" onclick="showFuncDetail('${f.name}')">
+      <span class="icon">${f.icon || '&#x2699;'}</span> ${esc(f.label)}
     </div>
   `).join('');
 }
 
-function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function setActiveNav(id) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
 
-// ── Login ──────────────────────────────────────────────
+// ── Login / Init ───────────────────────────────────────
 async function init() {
   const status = await API.get('/api/status');
+  funcRegistry = await API.get('/api/functions');
+  renderSidebar();
   if (!status.configured && !status.hasPassword) {
     showPage('onboarding');
     renderWizard();
@@ -237,23 +404,66 @@ async function doLogin() {
   await loadBots();
 }
 
-// ── Bots ───────────────────────────────────────────────
+// ── Bot List ───────────────────────────────────────────
 async function loadBots() {
   bots = await API.get('/api/bots');
+  funcRegistry = await API.get('/api/functions');
   renderSidebar();
-  if (bots.length === 0) { showAddBot(); }
-  else if (!selectedBot || !bots.find(b => b.id === selectedBot)) { selectBot(bots[0].id); }
+  renderBotTable();
 }
 
+function renderBotTable() {
+  const tbody = document.getElementById('botTableBody');
+  const empty = document.getElementById('botListEmpty');
+  if (!bots.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  tbody.innerHTML = bots.map(b => {
+    const totalFuncs = (b.allFunctions || []).length;
+    const activeFuncs = (b.activeFunctions || []).length;
+    return `<tr>
+      <td><div class="bot-dot ${b.status}" title="${b.status}"></div></td>
+      <td><strong style="cursor:pointer;color:var(--accent)" onclick="selectBot('${b.id}')">${esc(b.name)}</strong></td>
+      <td>${b.guildCount || 0}</td>
+      <td>${b.error ? `<span class="badge badge-red">${esc(b.error)}</span>` : `<span class="badge badge-green">0</span>`}</td>
+      <td><span class="badge ${activeFuncs > 0 ? 'badge-green' : 'badge-dim'}">${activeFuncs}/${totalFuncs}</span></td>
+      <td><div class="toggle ${b.enabled !== false ? 'on' : ''}" onclick="toggleBot('${b.id}')"></div></td>
+      <td class="actions">
+        <button class="btn btn-sm btn-secondary" onclick="selectBot('${b.id}')">&#x2139; Overview</button>
+        <button class="btn btn-sm btn-secondary" onclick="showBotFunctions('${b.id}')">&#x2699; Configure</button>
+        <button class="btn btn-sm btn-danger" onclick="promptDeleteBot('${b.id}')">&#x1F5D1;</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function showBotList() {
+  selectedBot = null;
+  currentPage = 'botList';
+  setActiveNav('nav-bots');
+  showPage('botList');
+  renderBotTable();
+}
+
+async function toggleBot(id) {
+  await API.post(`/api/bots/${id}/toggle`);
+  await loadBots();
+}
+
+// ── Bot Overview ───────────────────────────────────────
 function selectBot(id) {
   selectedBot = id;
-  renderSidebar();
+  currentPage = 'overview';
   showBotOverview(id);
 }
 
 async function showBotOverview(id) {
   const bot = bots.find(b => b.id === id);
   if (!bot) return;
+  selectedBot = id;
   document.getElementById('overviewTitle').textContent = bot.name;
   const stats = await API.get(`/api/bots/${id}/stats`);
   const logs = await API.get(`/api/bots/${id}/logs`);
@@ -299,7 +509,7 @@ async function stopBot(id) {
   if (selectedBot) showBotOverview(id);
 }
 
-// ── Add Bot ────────────────────────────────────────────
+// ── Add Bot Wizard ─────────────────────────────────────
 function showAddBot() {
   wizardState = { step: 0, token: '', clientId: '', name: '', serverId: '', botInfo: null };
   showPage('onboarding');
@@ -311,11 +521,9 @@ const WIZARD_STEPS = ['Create Bot', 'Credentials', 'Invite', 'Done'];
 function renderWizard() {
   const ind = document.getElementById('wizardSteps');
   ind.innerHTML = WIZARD_STEPS.map((_, i) => `<div class="step-dot ${i < wizardState.step ? 'done' : i === wizardState.step ? 'active' : ''}"></div>`).join('');
-
   const c = document.getElementById('wizardContent');
-  const s = wizardState.step;
 
-  if (s === 0) {
+  if (wizardState.step === 0) {
     c.innerHTML = `
       <h2>Create a Discord Bot</h2>
       <p class="subtitle">Step 1 of ${WIZARD_STEPS.length}</p>
@@ -332,7 +540,7 @@ function renderWizard() {
         <button class="btn btn-primary" onclick="wizardState.step=1;renderWizard()">Next: Enter Credentials</button>
       </div>
     `;
-  } else if (s === 1) {
+  } else if (wizardState.step === 1) {
     c.innerHTML = `
       <h2>Enter Credentials</h2>
       <p class="subtitle">Step 2 of ${WIZARD_STEPS.length}</p>
@@ -354,7 +562,7 @@ function renderWizard() {
         <button class="btn btn-primary" onclick="validateAndNext()">Validate & Next</button>
       </div>
     `;
-  } else if (s === 2) {
+  } else if (wizardState.step === 2) {
     const cid = wizardState.clientId;
     const oauthUrl = `https://discord.com/api/oauth2/authorize?client_id=${cid}&permissions=2147485696&scope=bot%20applications.commands`;
     c.innerHTML = `
@@ -370,7 +578,7 @@ function renderWizard() {
         <button class="btn btn-primary" onclick="wizardState.step=3;renderWizard()">Next: Finish</button>
       </div>
     `;
-  } else if (s === 3) {
+  } else if (wizardState.step === 3) {
     c.innerHTML = `
       <h2>All Done!</h2>
       <p class="subtitle">Step ${WIZARD_STEPS.length} of ${WIZARD_STEPS.length}</p>
@@ -378,7 +586,7 @@ function renderWizard() {
         <p>Your bot <strong>${esc(wizardState.name)}</strong> has been created in StarrBot.</p>
         <p style="margin:8px 0">It's currently <strong>stopped</strong>. You can:</p>
         <ul style="padding-left:16px">
-          <li>Configure functions (Updates, Tickets) from the <strong>Functions</strong> tab</li>
+          <li>Configure functions from <strong>Bot Management</strong></li>
           <li>Click <strong>Start Bot</strong> to bring it online</li>
         </ul>
       </div>
@@ -394,7 +602,6 @@ async function validateAndNext() {
   wizardState.token = document.getElementById('wizToken').value.trim();
   wizardState.clientId = document.getElementById('wizClientId').value.trim();
   if (!wizardState.name || !wizardState.token || !wizardState.clientId) { toast('All fields required', 'error'); return; }
-
   const el = document.getElementById('wizValidation');
   el.innerHTML = '<span style="color:var(--yellow)">Validating token...</span>';
   const res = await API.post('/api/validate-token', { token: wizardState.token });
@@ -409,71 +616,202 @@ async function finishWizard() {
   if (res.error) { toast(res.error, 'error'); return; }
   toast('Bot created!');
   await loadBots();
-  selectBot(res.id);
+  showBotList();
 }
 
-// ── Functions Page ─────────────────────────────────────
-async function showBotFunctions(id) {
-  document.getElementById('functionsTitle').textContent = `${bots.find(b=>b.id===id)?.name || ''} — Functions`;
-  const content = document.getElementById('functionsContent');
-
-  const updates = await API.get(`/api/bots/${id}/functions/updates`);
-  const tickets = await API.get(`/api/bots/${id}/functions/tickets`);
-
-  content.innerHTML = `
+// ── Functions Registry ─────────────────────────────────
+async function showFunctionsRegistry() {
+  setActiveNav('');
+  funcRegistry = await API.get('/api/functions');
+  const el = document.getElementById('funcsRegistryContent');
+  el.innerHTML = funcRegistry.map(f => `
     <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div><strong>📡 Updates</strong><br><span style="color:var(--text-dim);font-size:12px">Monitor social feeds and post updates</span></div>
-        <button class="btn btn-sm ${updates?.enabled ? 'btn-success' : 'btn-secondary'}" onclick="toggleFunc('${id}','updates',${!updates?.enabled})">${updates?.enabled ? 'Enabled' : 'Disabled'}</button>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <strong style="font-size:15px">${f.icon || ''} ${esc(f.label)}</strong>
+          <div style="color:var(--text-dim);font-size:13px;margin-top:2px">${esc(f.description)}</div>
+        </div>
       </div>
-      <div class="form-group"><label>RSSHub URL</label><input type="text" id="funcRsshub" value="${esc(updates?.rsshubUrl||'http://rsshub:1200')}"></div>
-      <div class="form-group"><label>Check Interval (minutes)</label><input type="number" id="funcInterval" value="${updates?.checkInterval||15}"></div>
-      <div class="form-group"><label>Post Channel ID</label><input type="text" id="funcChannel" value="${esc(updates?.channelId||'')}"><div class="form-hint">Right-click channel → Copy Channel ID</div></div>
-      <h3>Sources</h3>
-      <div class="source-list" id="sourceList">
-        ${(updates?.sources||[]).map((s,i) => `<div class="source-item"><span class="label">${esc(s.label||'')}</span><span class="url">${esc(s.url)}</span><button class="btn btn-sm btn-danger" onclick="removeSource('${id}',${i})">Remove</button></div>`).join('') || '<div style="color:var(--text-dim);font-size:13px;padding:8px">No sources configured</div>'}
-      </div>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <input type="text" id="newSourceUrl" placeholder="/tiktok/user/username or full URL" style="flex:1;padding:8px;background:var(--input);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px">
-        <input type="text" id="newSourceLabel" placeholder="Label (optional)" style="width:120px;padding:8px;background:var(--input);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px">
-        <button class="btn btn-sm btn-primary" onclick="addSource('${id}')">Add</button>
-      </div>
-      <div style="margin-top:12px"><button class="btn btn-primary" onclick="saveUpdates('${id}')">Save Updates Config</button></div>
+      ${f.commands.length ? `
+        <div style="margin-top:12px">
+          <div style="font-size:12px;color:var(--text-dim);margin-bottom:4px">Commands</div>
+          <div class="cmd-list">
+            ${f.commands.map(c => `
+              <div class="cmd-item">
+                <span class="cmd-name">${esc(c.name)}</span>
+                <span class="cmd-desc">&mdash; ${esc(c.description)}</span>
+                <span class="cmd-perm">${c.permission}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : '<div style="margin-top:8px;color:var(--text-dim);font-size:12px">No commands</div>'}
     </div>
+  `).join('') || '<div class="empty-state"><h3>No functions installed</h3><p style="color:var(--text-dim)">Add function modules to the functions/ directory</p></div>';
+  showPage('funcsRegistry');
+}
+
+function showFuncDetail(name) {
+  const f = funcRegistry.find(r => r.name === name);
+  if (!f) return;
+  const el = document.getElementById('funcsRegistryContent');
+  el.innerHTML = `
     <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div><strong>🎫 Tickets</strong><br><span style="color:var(--text-dim);font-size:12px">Support ticket system with threads</span></div>
-        <button class="btn btn-sm ${tickets?.enabled ? 'btn-success' : 'btn-secondary'}" onclick="toggleFunc('${id}','tickets',${!tickets?.enabled})">${tickets?.enabled ? 'Enabled' : 'Disabled'}</button>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <strong style="font-size:15px">${f.icon || ''} ${esc(f.label)}</strong>
+          <div style="color:var(--text-dim);font-size:13px;margin-top:2px">${esc(f.description)}</div>
+        </div>
       </div>
-      <div class="form-group"><label>Admin Channel ID</label><input type="text" id="funcTicketAdmin" value="${esc(tickets?.adminChannelId||'')}"><div class="form-hint">Where tickets are created</div></div>
-      <div class="form-group"><label>Admin Role ID</label><input type="text" id="funcTicketRole" value="${esc(tickets?.adminRoleId||'')}"><div class="form-hint">Optional — leave empty for everyone</div></div>
-      <div style="margin-top:12px"><button class="btn btn-primary" onclick="saveTickets('${id}')">Save Tickets Config</button></div>
+      ${f.commands.length ? `
+        <div style="margin-top:16px">
+          <div style="font-size:12px;color:var(--text-dim);margin-bottom:6px">Commands</div>
+          <div class="cmd-list">
+            ${f.commands.map(c => `
+              <div class="cmd-item">
+                <span class="cmd-name">${esc(c.name)}</span>
+                <span class="cmd-desc">&mdash; ${esc(c.description)}</span>
+                <span class="cmd-perm">${c.permission}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+      ${f.configFields.length ? `
+        <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px">
+          <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px">Configuration Fields</div>
+          ${f.configFields.map(cf => `
+            <div style="font-size:12px;padding:4px 0"><code style="color:var(--accent)">${esc(cf.key)}</code> <span style="color:var(--text-dim)">&mdash; ${esc(cf.label)} (${cf.type})</span></div>
+          `).join('')}
+        </div>
+      ` : ''}
+      <div style="margin-top:16px">
+        <div style="font-size:12px;color:var(--text-dim);margin-bottom:6px">Deployed to:</div>
+        ${bots.filter(b => (b.activeFunctions || []).includes(f.name) || (b.allFunctions || []).includes(f.name)).map(b => `
+          <span class="badge ${(b.activeFunctions || []).includes(f.name) ? 'badge-green' : 'badge-dim'}" style="margin-right:4px">${esc(b.name)}</span>
+        `).join('') || '<span style="font-size:12px;color:var(--text-dim)">No bots</span>'}
+      </div>
     </div>
   `;
+  setActiveNav('');
+  showPage('funcsRegistry');
+}
+
+// ── Functions Deploy ───────────────────────────────────
+async function showFunctionsDeploy() {
+  setActiveNav('');
+  await loadBots();
+  funcRegistry = await API.get('/api/functions');
+  const tbody = document.getElementById('deployTableBody');
+  if (!funcRegistry.length) {
+    tbody.innerHTML = '';
+    document.getElementById('deployEmpty').style.display = 'block';
+    return;
+  }
+  document.getElementById('deployEmpty').style.display = 'none';
+  tbody.innerHTML = funcRegistry.map(f => {
+    const deployed = bots.filter(b => (b.allFunctions || []).includes(f.name));
+    return `<tr>
+      <td><strong>${f.icon || ''} ${esc(f.label)}</strong></td>
+      <td style="color:var(--text-dim);font-size:12px">${esc(f.description)}</td>
+      <td>
+        ${deployed.length ? deployed.map(b => {
+          const active = (b.activeFunctions || []).includes(f.name);
+          return `<span class="badge ${active ? 'badge-green' : 'badge-dim'}" style="margin-right:4px;cursor:pointer" onclick="toggleFunc('${b.id}','${f.name}',${!active})">${esc(b.name)} ${active ? '&#x2713;' : '&#x2717;'}</span>`;
+        }).join('') : '<span style="font-size:12px;color:var(--text-dim)">Not deployed</span>'}
+      </td>
+      <td>
+        ${deployed.length ? deployed.map(b => `<button class="btn btn-sm btn-secondary" onclick="showBotFunctions('${b.id}')">Configure</button>`).join(' ') : ''}
+      </td>
+    </tr>`;
+  }).join('');
+  showPage('funcsDeploy');
+}
+
+// ── Bot Functions Config (per-bot) ─────────────────────
+async function showBotFunctions(id) {
+  const bot = bots.find(b => b.id === id);
+  selectedBot = id;
+  document.getElementById('functionsTitle').textContent = `${bot?.name || ''} — Functions`;
+  const content = document.getElementById('functionsContent');
+  funcRegistry = await API.get('/api/functions');
+
+  let html = '';
+  for (const f of funcRegistry) {
+    const cfg = await API.get(`/api/bots/${id}/functions/${f.name}`);
+    const enabled = cfg?.enabled || false;
+
+    html += `<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div><strong>${f.icon || ''} ${esc(f.label)}</strong><br><span style="color:var(--text-dim);font-size:12px">${esc(f.description)}</span></div>
+        <div class="toggle ${enabled ? 'on' : ''}" onclick="toggleFunc('${id}','${f.name}',${!enabled})"></div>
+      </div>
+      ${enabled ? `
+        <div style="margin-bottom:12px">
+          <div class="form-group">
+            <label>Command Prefix (per-function override)</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="text" id="funcPrefix_${f.name}" value="${esc(cfg?.commandPrefix || '')}" maxlength="3" style="width:60px;text-align:center;font-size:18px;font-family:monospace" placeholder="global">
+            </div>
+            <div class="form-hint">Leave empty to use global prefix</div>
+          </div>
+        </div>
+        ${f.configFields.length ? `
+          <div>
+            ${f.configFields.map(cf => `
+              <div class="form-group">
+                <label>${esc(cf.label)}</label>
+                <input type="${cf.type === 'number' ? 'number' : 'text'}" id="funcCfg_${f.name}_${cf.key}" value="${esc(cfg?.[cf.key] || '')}">
+                <div class="form-hint">${esc(cf.hint || '')}</div>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+        ${f.name === 'updates' ? `
+          <div style="margin-top:12px">
+            <div style="font-size:12px;color:var(--text-dim);margin-bottom:4px">Sources</div>
+            <div class="source-list" id="sourceList">
+              ${(cfg?.sources || []).map((s, i) => `<div class="source-item"><span class="label">${esc(s.label || '')}</span><span class="url">${esc(s.url)}</span><button class="btn btn-sm btn-danger" onclick="removeSource('${id}',${i})">Remove</button></div>`).join('') || '<div style="color:var(--text-dim);font-size:13px;padding:8px">No sources configured</div>'}
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <input type="text" id="newSourceUrl" placeholder="/tiktok/user/username or full URL" style="flex:1;padding:8px;background:var(--input);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px">
+              <input type="text" id="newSourceLabel" placeholder="Label (optional)" style="width:120px;padding:8px;background:var(--input);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px">
+              <button class="btn btn-sm btn-primary" onclick="addSource('${id}')">Add</button>
+            </div>
+          </div>
+        ` : ''}
+        <div style="margin-top:12px"><button class="btn btn-primary" onclick="saveFuncConfig('${id}','${f.name}')">Save Config</button></div>
+      ` : `
+        <div style="color:var(--text-dim);font-size:12px;padding:8px 0">Enable this function to configure it.</div>
+      `}
+    </div>`;
+  }
+  content.innerHTML = html || '<div class="empty-state"><h3>No functions available</h3></div>';
   showPage('functions');
 }
 
 async function toggleFunc(botId, funcName, enabled) {
   await API.put(`/api/bots/${botId}/functions/${funcName}`, { enabled });
   toast(`${funcName} ${enabled ? 'enabled' : 'disabled'}`);
-  showBotFunctions(botId);
+  await loadBots();
+  if (currentPage === 'botList') renderBotTable();
+  else showBotFunctions(botId);
 }
 
-async function saveUpdates(botId) {
-  await API.put(`/api/bots/${botId}/functions/updates`, {
-    rsshubUrl: document.getElementById('funcRsshub').value,
-    checkInterval: parseInt(document.getElementById('funcInterval').value) || 15,
-    channelId: document.getElementById('funcChannel').value,
+async function saveFuncConfig(botId, funcName) {
+  const body = { enabled: true };
+  const prefixEl = document.getElementById(`funcPrefix_${funcName}`);
+  if (prefixEl) body.commandPrefix = prefixEl.value;
+  funcRegistry.forEach(f => {
+    if (f.name === funcName) {
+      f.configFields.forEach(cf => {
+        const el = document.getElementById(`funcCfg_${funcName}_${cf.key}`);
+        if (el) body[cf.key] = cf.type === 'number' ? (parseInt(el.value) || 0) : el.value;
+      });
+    }
   });
-  toast('Updates config saved');
-}
-
-async function saveTickets(botId) {
-  await API.put(`/api/bots/${botId}/functions/tickets`, {
-    adminChannelId: document.getElementById('funcTicketAdmin').value,
-    adminRoleId: document.getElementById('funcTicketRole').value,
-  });
-  toast('Tickets config saved');
+  await API.put(`/api/bots/${botId}/functions/${funcName}`, body);
+  toast(`${funcName} config saved`);
 }
 
 async function addSource(botId) {
@@ -501,6 +839,7 @@ async function removeSource(botId, idx) {
 function showBotSettings(id) {
   const bot = bots.find(b => b.id === id);
   if (!bot) return;
+  selectedBot = id;
   document.getElementById('settingName').value = bot.name;
   document.getElementById('settingToken').value = '';
   showPage('bot-settings');
@@ -516,16 +855,14 @@ async function saveBotSettings() {
   await loadBots();
 }
 
-async function deleteCurrentBot() {
-  if (!selectedBot || !confirm('Delete this bot? This cannot be undone.')) return;
-  await API.del(`/api/bots/${selectedBot}`);
-  selectedBot = null;
-  await loadBots();
-  if (bots.length) selectBot(bots[0].id);
-  else showAddBot();
+// ── Global Settings ────────────────────────────────────
+async function showGlobalSettings() {
+  setActiveNav('nav-settings');
+  const settings = await API.get('/api/settings');
+  document.getElementById('globalPrefix').value = settings.commandPrefix || '!';
+  showPage('global-settings');
 }
 
-// ── Global Settings ────────────────────────────────────
 async function saveGlobalPw() {
   const newPw = document.getElementById('globalPw').value;
   if (!newPw) return;
@@ -535,6 +872,67 @@ async function saveGlobalPw() {
   document.getElementById('globalPw').value = '';
 }
 
+async function saveGlobalPrefix() {
+  const val = document.getElementById('globalPrefix').value;
+  if (!/^[^\w\d]+$/.test(val) && val.length > 0) { toast('Prefix must be punctuation/special characters only', 'error'); return; }
+  await API.put('/api/settings', { commandPrefix: val || '!' });
+  toast('Prefix updated');
+}
+
+async function promptResetAll() {
+  openDeleteModal('reset', '', '', 'This will delete ALL bots, functions, and settings.');
+}
+
+// ── Delete Modal ───────────────────────────────────────
+function openDeleteModal(type, id, name, desc) {
+  deleteState = { id, name, type };
+  document.getElementById('deleteModalTitle').textContent = type === 'bot' ? `Delete bot "${name}"?` : 'Reset Everything?';
+  document.getElementById('deleteModalDesc').textContent = desc || 'This action cannot be undone.';
+  document.getElementById('deleteModalLabel').textContent = type === 'bot' ? `Type "${name}" to confirm:` : 'Type "RESET" to confirm:';
+  document.getElementById('deleteModalInput').value = '';
+  document.getElementById('deleteModalInput').placeholder = type === 'bot' ? name : 'RESET';
+  document.getElementById('deleteModalError').textContent = '';
+  document.getElementById('deleteModalBtn').disabled = true;
+  document.getElementById('deleteModal').classList.add('open');
+  document.getElementById('deleteModalInput').focus();
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function checkDeleteConfirm() {
+  const input = document.getElementById('deleteModalInput').value;
+  const expected = deleteState.type === 'bot' ? deleteState.name : 'RESET';
+  const match = input === expected;
+  document.getElementById('deleteModalBtn').disabled = !match;
+  document.getElementById('deleteModalError').textContent = match ? '' : `Type exactly: ${expected}`;
+}
+
+async function confirmDelete() {
+  if (deleteState.type === 'bot') {
+    await API.del(`/api/bots/${deleteState.id}`);
+    toast('Bot deleted');
+    selectedBot = null;
+    await loadBots();
+    showBotList();
+  } else if (deleteState.type === 'reset') {
+    const botsCopy = [...bots];
+    for (const b of botsCopy) await API.del(`/api/bots/${b.id}`);
+    await API.post('/api/auth/password', { password: '' });
+    pw = '';
+    toast('Everything reset');
+    await init();
+  }
+  closeModal('deleteModal');
+}
+
+function promptDeleteBot(id) {
+  const bot = bots.find(b => b.id === id);
+  if (!bot) return;
+  openDeleteModal('bot', id, bot.name);
+}
+
 // ── SSE ────────────────────────────────────────────────
 function connectSSE() {
   const es = new EventSource('/api/events');
@@ -542,6 +940,8 @@ function connectSSE() {
     const data = JSON.parse(e.data);
     const bot = bots.find(b => b.id === data.id);
     if (bot) { bot.status = data.status; bot.error = data.error; }
+    if (currentPage === 'botList') renderBotTable();
+    else if (currentPage === 'overview' && selectedBot === data.id) showBotOverview(data.id);
     renderSidebar();
   });
   es.addEventListener('bot:log', (e) => {
@@ -555,14 +955,6 @@ function connectSSE() {
       }
     }
   });
-}
-
-function timeSince(ts) {
-  const diff = Date.now() - new Date(ts).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return 'Just now';
-  if (m < 60) return `${m}m ago`;
-  return `${Math.floor(m/60)}h ${m%60}m ago`;
 }
 
 // ── Init ───────────────────────────────────────────────

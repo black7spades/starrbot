@@ -108,6 +108,21 @@ const server = http.createServer(async (req, res) => {
   // All routes below require auth
   if (!checkAuth(req)) return json(res, 401, { error: 'Unauthorized' });
 
+  // ── Settings ────────────────────────────────────────────────────────────
+  if (req.url === '/api/settings' && req.method === 'GET') {
+    return json(res, 200, manager.getSettings());
+  }
+  if (req.url === '/api/settings' && req.method === 'PUT') {
+    const body = await readBody(req);
+    manager.setSettings(body);
+    return json(res, 200, manager.getSettings());
+  }
+
+  // ── Function Registry ───────────────────────────────────────────────────
+  if (req.url === '/api/functions' && req.method === 'GET') {
+    return json(res, 200, manager.getFunctionRegistry());
+  }
+
   // ── Bot CRUD ───────────────────────────────────────────────────────────
   if (req.url === '/api/bots' && req.method === 'GET') {
     return json(res, 200, manager.getBots());
@@ -155,6 +170,13 @@ const server = http.createServer(async (req, res) => {
   if (stopMatch && req.method === 'POST') {
     manager.stopBot(stopMatch[1]);
     return json(res, 200, { ok: true });
+  }
+
+  const toggleMatch = req.url.match(/^\/api\/bots\/([^/]+)\/toggle$/);
+  if (toggleMatch && req.method === 'POST') {
+    const result = manager.toggleBot(toggleMatch[1]);
+    if (!result) return json(res, 404, { error: 'Bot not found' });
+    return json(res, 200, result);
   }
 
   // ── Function Config ────────────────────────────────────────────────────

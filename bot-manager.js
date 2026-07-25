@@ -16,12 +16,16 @@ class BotManager extends EventEmitter {
   _load() {
     fs.mkdirSync(DATA_DIR, { recursive: true });
     if (!fs.existsSync(CONFIG_FILE)) {
-      const empty = { adminPassword: '', bots: [] };
+      const empty = { adminPassword: '', commandPrefix: '!', bots: [] };
       fs.writeFileSync(CONFIG_FILE, JSON.stringify(empty, null, 2));
       return empty;
     }
-    try { return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')); }
-    catch { return { adminPassword: '', bots: [] }; }
+    try {
+      const data = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+      if (!data.commandPrefix) data.commandPrefix = '!';
+      if (!data.bots) data.bots = [];
+      return data;
+    } catch { return { adminPassword: '', commandPrefix: '!', bots: [] }; }
   }
 
   save() {
@@ -33,8 +37,12 @@ class BotManager extends EventEmitter {
     return this.config.bots.map(b => ({
       id: b.id,
       name: b.name,
+      enabled: b.enabled !== false,
       status: this.bots.get(b.id)?.status || 'stopped',
       error: this.bots.get(b.id)?.error || null,
+      guildCount: this.bots.get(b.id)?.client?.guilds?.cache?.size || 0,
+      activeFunctions: Object.entries(b.functions || {}).filter(([, v]) => v.enabled).map(([k]) => k),
+      allFunctions: Object.keys(b.functions || {}),
     }));
   }
 
@@ -50,9 +58,10 @@ class BotManager extends EventEmitter {
       name,
       token: token || '',
       clientId: clientId || '',
+      enabled: true,
       functions: {
-        updates: { enabled: false, sources: [], channelId: '', checkInterval: 15, rsshubUrl: 'http://rsshub:1200' },
-        tickets: { enabled: false, channelId: '', adminChannelId: '', adminRoleId: '' },
+        updates: { enabled: false, commandPrefix: '', sources: [], channelId: '', checkInterval: 15, rsshubUrl: 'http://rsshub:1200' },
+        tickets: { enabled: false, commandPrefix: '', channelId: '', adminChannelId: '', adminRoleId: '' },
       },
     };
     this.config.bots.push(bot);
@@ -118,6 +127,35 @@ class BotManager extends EventEmitter {
 
   getAdminPassword() { return this.config.adminPassword; }
   setAdminPassword(pw) { this.config.adminPassword = pw; this.save(); }
+
+  getSettings() {
+    return { commandPrefix: this.config.commandPrefix || '!' };
+  }
+
+  setSettings(updates) {
+    if (updates.commandPrefix !== undefined) this.config.commandPrefix = updates.commandPrefix;
+    this.save();
+  }
+
+  toggleBot(id) {
+    const bot = this.config.bots.find(b => b.id === id);
+    if (!bot) return null;
+    bot.enabled = bot.enabled === false ? true : false;
+    this.save();
+    return { id, enabled: bot.enabled };
+  }
+
+  getFunctionRegistry() {
+    const registry = require('./functions');
+    return Object.entries(registry).map(([name, fn]) => ({
+      name,
+      label: name.charAt(0).toUpperCase() + name.slice(1),
+      description: fn.description,
+      icon: fn.icon,
+      commands: fn.commands || [],
+      configFields: fn.configFields || [],
+    }));
+  }
 }
 
 module.exports = BotManager;

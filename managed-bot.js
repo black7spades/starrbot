@@ -69,12 +69,14 @@ class ManagedBot {
 
   _loadFunctions() {
     this._unloadFunctions();
+    const globalPrefix = this.manager.config.commandPrefix || '!';
     for (const [name, func] of Object.entries(functions)) {
       const config = this.config.functions[name];
       if (config?.enabled) {
         try {
-          func.registerCommands(this.client, config, this);
-          func.start(this, config);
+          const resolvedConfig = { ...config, commandPrefix: config.commandPrefix || globalPrefix };
+          func.registerCommands(this.client, resolvedConfig, this);
+          func.start(this, resolvedConfig);
           this.loadedFunctions.push(name);
           this._log(`Loaded function: ${name}`);
         } catch (err) {

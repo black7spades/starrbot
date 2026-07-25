@@ -42,6 +42,14 @@ module.exports = {
   name: 'updates',
   description: 'Monitor social feeds and post updates',
   icon: '\u{1F4E1}',
+  commands: [
+    { name: 'feeds', description: 'List all monitored feeds', permission: 'everyone' },
+    { name: 'stats', description: 'View bot statistics', permission: 'everyone' },
+    { name: 'ping', description: 'Check if bot is alive', permission: 'everyone' },
+    { name: 'help', description: 'Show all available commands', permission: 'everyone' },
+    { name: 'addfeed <url>', description: 'Add a new feed URL', permission: 'admin' },
+    { name: 'removefeed <#>', description: 'Remove feed by number', permission: 'admin' },
+  ],
   defaults: { sources: [], channelId: '', checkInterval: 15, rsshubUrl: 'http://rsshub:1200' },
   configFields: [
     { key: 'rsshubUrl', label: 'RSSHub URL', type: 'text', hint: 'Your RSSHub instance URL' },
@@ -50,16 +58,17 @@ module.exports = {
   ],
 
   registerCommands(client, config, managedBot) {
+    const P = config.commandPrefix || '!';
     client.on('messageCreate', async (msg) => {
       if (msg.author.bot) return;
       const isAdmin = (member) => !config.adminRoleId || member.roles.cache.has(config.adminRoleId);
 
-      if (msg.content === '!feeds') {
+      if (msg.content === `${P}feeds`) {
         const list = config.sources.map((s, i) => `${i + 1}. ${s.label || getPlatform(s.url).name}: ${s.url}`).join('\n');
         return msg.reply(list || 'No feeds configured.');
       }
 
-      if (msg.content === '!stats') {
+      if (msg.content === `${P}stats`) {
         const embed = new EmbedBuilder().setColor(0x5865F2).setTitle('\u{1F4CA} Bot Stats').addFields(
           { name: 'Feeds', value: `${config.sources.length}`, inline: true },
           { name: 'Posts Sent', value: `${managedBot.stats.postsSent}`, inline: true },
@@ -69,10 +78,10 @@ module.exports = {
         return msg.reply({ embeds: [embed] });
       }
 
-      if (msg.content.startsWith('!addfeed ')) {
+      if (msg.content.startsWith(`${P}addfeed `)) {
         const member = await msg.guild.members.fetch(msg.author.id);
         if (!isAdmin(member)) return msg.reply('Admin only.');
-        let url = msg.content.slice(9).trim();
+        let url = msg.content.slice(P.length + 8).trim();
         if (url.startsWith('/')) url = (config.rsshubUrl || 'http://rsshub:1200') + url;
         if (!url.startsWith('http')) return msg.reply('Invalid URL.');
         if (config.sources.find(s => s.url === url)) return msg.reply('Feed already exists.');
@@ -81,23 +90,23 @@ module.exports = {
         return msg.reply(`Added: ${url}`);
       }
 
-      if (msg.content.startsWith('!removefeed ')) {
+      if (msg.content.startsWith(`${P}removefeed `)) {
         const member = await msg.guild.members.fetch(msg.author.id);
         if (!isAdmin(member)) return msg.reply('Admin only.');
-        const idx = parseInt(msg.content.slice(12)) - 1;
+        const idx = parseInt(msg.content.slice(P.length + 11)) - 1;
         if (Number.isNaN(idx) || idx < 0 || idx >= config.sources.length) return msg.reply('Invalid feed number.');
         const removed = config.sources.splice(idx, 1)[0];
         managedBot.manager.save();
         return msg.reply(`Removed: ${removed.url}`);
       }
 
-      if (msg.content === '!help') {
+      if (msg.content === `${P}help`) {
         const embed = new EmbedBuilder().setColor(0x5865F2).setTitle('\u{1F4D6} Commands')
-          .setDescription('**Everyone**\n`!ping` \u2014 Check bot is alive\n`!feeds` \u2014 List monitored feeds\n`!ticket <msg>` \u2014 Submit a support ticket\n`!help` \u2014 Show this message\n`!stats` \u2014 View bot statistics\n\n**Admin**\n`!addfeed <url>` \u2014 Add a new feed\n`!removefeed <#>` \u2014 Remove feed by number');
+          .setDescription(`**Everyone**\n\`${P}ping\` \u2014 Check bot is alive\n\`${P}feeds\` \u2014 List monitored feeds\n\`${P}ticket <msg>\` \u2014 Submit a support ticket\n\`${P}help\` \u2014 Show this message\n\`${P}stats\` \u2014 View bot statistics\n\n**Admin**\n\`${P}addfeed <url>\` \u2014 Add a new feed\n\`${P}removefeed <#>\` \u2014 Remove feed by number`);
         return msg.reply({ embeds: [embed] });
       }
 
-      if (msg.content === '!ping') return msg.reply('Pong! \u{1F3D3}');
+      if (msg.content === `${P}ping`) return msg.reply('Pong! \u{1F3D3}');
     });
   },
 
