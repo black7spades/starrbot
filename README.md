@@ -68,7 +68,8 @@ ADMIN_CHANNEL_ID=paste_your_admin_channel_id_here
 ADMIN_ROLE_ID=paste_your_admin_role_id_here
 RSSHUB_BASE_URL=https://rsshub.yourdomain.com
 CHECK_INTERVAL=15
-IG_COOKIE=sessionid=YOUR_SESSION_ID_HERE
+IG_USERNAME=your_instagram_username
+IG_PASSWORD=your_instagram_password
 YOUTUBE_KEY=YOUR_YOUTUBE_API_KEY_HERE
 ```
 
@@ -97,7 +98,7 @@ Save and exit: press `Ctrl+X` → `Y` → `Enter`
 5. Set the **Working Directory** or **Source Path** to: `/opt/YOUR_REPO`
 6. Click **Deploy** or **Start**
 
-Dockhand will pull the bot image from `ghcr.io/YOUR_GITHUB_USER/YOUR_REPO:latest` and build the custom RSSHub image with Playwright browsers for TikTok support.
+Dockhand will pull the bot image from `ghcr.io/YOUR_GITHUB_USER/YOUR_REPO:latest` and build the custom RSSHub image with Patchright browsers for TikTok support.
 
 To verify it's running:
 1. In Dockhand, find the `mkitty-bot-bot-1` container
@@ -118,7 +119,7 @@ When you push new code and want the latest image:
 - Click **Stop** then **Start** (or **Restart**)
 - The container now runs the latest image
 
-**Note:** The first time you deploy, Dockhand will build the RSSHub image locally (this takes a few minutes to install Playwright browsers). Subsequent starts use the cached image.
+**Note:** The first time you deploy, Dockhand will build the RSSHub image locally (this takes a few minutes to install Patchright browsers). Subsequent starts use the cached image.
 
 ## Step 5: Expose RSSHub to the Internet
 
@@ -169,7 +170,7 @@ Other examples:
 ```
 !addfeed /tiktok/user/username
 !addfeed /instagram/user/natgeo
-!addfeed /twitch/video/shroud
+!addfeed /twitch/live/shroud
 !addfeed https://www.youtube.com/feeds/videos.xml?channel_id=UC_x5XG1OV2P6uZZ5FSM9Ttw
 ```
 

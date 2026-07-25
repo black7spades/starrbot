@@ -1,8 +1,6 @@
-require('dotenv').config();
 const { Client, GatewayIntentBits, EmbedBuilder, ChannelType } = require('discord.js');
 const Parser = require('rss-parser');
 const fs = require('fs');
-const path = require('path');
 const parser = new Parser();
 
 const client = new Client({
@@ -23,7 +21,7 @@ let ticketCounter = 0;
 const CHECK_INTERVAL = parseInt(process.env.CHECK_INTERVAL) || 15;
 const CHANNEL_ID = process.env.DISCORD_CHANNEL_ID;
 const ADMIN_ROLE_ID = process.env.ADMIN_ROLE_ID;
-const FEEDS_FILE = path.join(__dirname, 'feeds.json');
+const FEEDS_FILE = `${__dirname}/feeds.json`;
 
 // ponytail: load from file, fall back to .env seed on first run
 function loadFeeds() {
