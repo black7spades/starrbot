@@ -11,9 +11,8 @@ module.exports = {
     { name: 'priority <low|medium|high>', description: 'Set ticket priority', permission: 'admin' },
     { name: 'assign @user', description: 'Assign ticket to a user', permission: 'admin' },
   ],
-  defaults: { channelId: '', adminChannelId: '', adminRoleId: '' },
+  defaults: { adminChannelId: '', adminRoleId: '' },
   configFields: [
-    { key: 'channelId', label: 'Ticket Channel ID', type: 'text', hint: 'Right-click channel \u2192 Copy Channel ID' },
     { key: 'adminChannelId', label: 'Admin Channel ID', type: 'text', hint: 'Where tickets are created' },
     { key: 'adminRoleId', label: 'Admin Role ID', type: 'text', hint: 'Role that can manage tickets (optional)' },
   ],
@@ -34,6 +33,9 @@ module.exports = {
         if (!message) return msg.reply(`Usage: ${P}ticket <message>`);
         const adminChannel = client.channels.cache.get(config.adminChannelId);
         if (!adminChannel) return msg.reply('Admin channel not configured.');
+
+        try { await msg.delete(); } catch {}
+
         let thread;
         try { thread = await adminChannel.threads.create({ name: `ticket-${++managedBot._ticketCounter}`, reason: `Ticket from ${msg.author.tag}` }); }
         catch (err) { managedBot._log(`Ticket create failed: ${err.message}`); return msg.reply('Failed to create ticket. Bot needs Manage Threads permission.'); }
@@ -41,7 +43,7 @@ module.exports = {
         try { await thread.members.add(msg.author.id); } catch {}
         tickets.set(thread.id, { submitterId: msg.author.id, ticketId: managedBot._ticketCounter, priority: 'medium', assignedTo: null });
         managedBot.stats.ticketsCreated++;
-        return msg.reply(`Ticket #${managedBot._ticketCounter} created.`);
+        return msg.reply({ content: `Ticket #${managedBot._ticketCounter} created. Check <#${adminChannel.id}>` });
       }
 
       if (tickets.has(msg.channel.id)) {

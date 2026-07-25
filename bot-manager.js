@@ -61,7 +61,7 @@ class BotManager extends EventEmitter {
       enabled: true,
       functions: {
         updates: { enabled: false, commandPrefix: '', sources: [], channelId: '', checkInterval: 15, rsshubUrl: 'http://rsshub:1200' },
-        tickets: { enabled: false, commandPrefix: '', channelId: '', adminChannelId: '', adminRoleId: '' },
+        tickets: { enabled: false, commandPrefix: '', adminChannelId: '', adminRoleId: '' },
       },
     };
     this.config.bots.push(bot);
