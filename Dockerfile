@@ -3,4 +3,4 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev
 COPY . .
-CMD ["node", "--env-file=.env", "index.js"]
+CMD ["node", "index.js"]
