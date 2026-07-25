@@ -6,7 +6,6 @@ const BotManager = require('./bot-manager');
 const WEB_PORT = parseInt(process.env.WEB_PORT) || 2013;
 const manager = new BotManager();
 
-// ── SSE Clients ──────────────────────────────────────────────────────────
 const sseClients = new Set();
 
 function broadcast(event, data) {
@@ -18,7 +17,6 @@ manager.on('bot:status', (d) => broadcast('bot:status', d));
 manager.on('bot:log', (d) => broadcast('bot:log', d));
 manager.on('bot:stats', (d) => broadcast('bot:stats', d));
 
-// ── Helpers ──────────────────────────────────────────────────────────────
 function readBody(req) {
   return new Promise((resolve) => {
     let body = '';
@@ -33,9 +31,19 @@ function json(res, code, data) {
 }
 
 function checkAuth(req) {
-  const pw = manager.getAdminPassword();
-  if (!pw) return true;
-  return req.headers['x-admin-password'] === pw;
+  const users = manager.getUsers();
+  if (users.length === 0) return true;
+  const username = req.headers['x-username'];
+  const password = req.headers['x-password'];
+  if (!username || !password) return false;
+  const user = manager.authenticate(username, password);
+  if (!user) return false;
+  req.user = user;
+  return true;
+}
+
+function checkAdmin(req) {
+  return checkAuth(req) && req.user?.role === 'admin';
 }
 
 function serveStatic(req, res) {
@@ -50,7 +58,6 @@ function serveStatic(req, res) {
   } catch { res.writeHead(404); res.end('Not found'); }
 }
 
-// ── Token Validation ─────────────────────────────────────────────────────
 async function validateToken(token) {
   try {
     const res = await fetch('https://discord.com/api/v10/users/@me', {
@@ -58,54 +65,54 @@ async function validateToken(token) {
     });
     if (!res.ok) return { valid: false, error: `HTTP ${res.status}` };
     const data = await res.json();
-    return { valid: true, bot: { id: data.id, username: data.username, avatar: data.avatar } };
+    const avatarUrl = data.avatar
+      ? `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png`
+      : null;
+    return { valid: true, bot: { id: data.id, username: data.username, avatarUrl } };
   } catch (err) { return { valid: false, error: err.message }; }
 }
 
-// ── Server ───────────────────────────────────────────────────────────────
 const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Password');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Username, X-Password');
   if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
 
-  // SSE endpoint (no auth check for SSE, but we could add it)
   if (req.url === '/api/events' && req.method === 'GET') {
-    res.writeHead(200, {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
-    });
+    res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
     res.write('event: connected\ndata: {}\n\n');
     sseClients.add(res);
     req.on('close', () => sseClients.delete(res));
     return;
   }
 
-  // ── Auth ───────────────────────────────────────────────────────────────
   if (req.url === '/api/status' && req.method === 'GET') {
+    const users = manager.getUsers();
     const bots = manager.getBots();
     return json(res, 200, {
       configured: bots.length > 0,
-      hasPassword: !!manager.getAdminPassword(),
+      hasUsers: users.length > 0,
       botCount: bots.length,
     });
   }
 
   if (req.url === '/api/auth/login' && req.method === 'POST') {
     const body = await readBody(req);
-    const pw = manager.getAdminPassword();
-    if (pw && body.password !== pw) return json(res, 401, { error: 'Wrong password' });
-    return json(res, 200, { ok: true });
+    const users = manager.getUsers();
+    if (users.length === 0) return json(res, 200, { ok: true, setup: true });
+    const user = manager.authenticate(body.username, body.password);
+    if (!user) return json(res, 401, { error: 'Invalid credentials' });
+    return json(res, 200, { ok: true, user: { id: user.id, username: user.username, role: user.role } });
   }
 
-  if (req.url === '/api/auth/password' && req.method === 'POST') {
-    if (!checkAuth(req)) return json(res, 401, { error: 'Unauthorized' });
+  if (req.url === '/api/auth/setup' && req.method === 'POST') {
     const body = await readBody(req);
-    if (body.password) manager.setAdminPassword(body.password);
-    return json(res, 200, { ok: true });
+    const users = manager.getUsers();
+    if (users.length > 0) return json(res, 400, { error: 'Already set up' });
+    if (!body.username || !body.password) return json(res, 400, { error: 'Username and password required' });
+    const user = manager.createUser({ username: body.username, password: body.password, role: 'admin' });
+    return json(res, 201, { ok: true, user: { id: user.id, username: user.username, role: user.role } });
   }
 
-  // All routes below require auth
   if (!checkAuth(req)) return json(res, 401, { error: 'Unauthorized' });
 
   // ── Settings ────────────────────────────────────────────────────────────
@@ -113,9 +120,40 @@ const server = http.createServer(async (req, res) => {
     return json(res, 200, manager.getSettings());
   }
   if (req.url === '/api/settings' && req.method === 'PUT') {
+    if (!checkAdmin(req)) return json(res, 403, { error: 'Admin only' });
     const body = await readBody(req);
     manager.setSettings(body);
     return json(res, 200, manager.getSettings());
+  }
+
+  // ── Users ───────────────────────────────────────────────────────────────
+  if (req.url === '/api/users' && req.method === 'GET') {
+    if (!checkAdmin(req)) return json(res, 403, { error: 'Admin only' });
+    return json(res, 200, manager.getUsers());
+  }
+  if (req.url === '/api/users' && req.method === 'POST') {
+    if (!checkAdmin(req)) return json(res, 403, { error: 'Admin only' });
+    const body = await readBody(req);
+    try {
+      const user = manager.createUser(body);
+      return json(res, 201, user);
+    } catch (err) { return json(res, 400, { error: err.message }); }
+  }
+  const userMatch = req.url.match(/^\/api\/users\/([^/]+)$/);
+  if (userMatch) {
+    if (!checkAdmin(req)) return json(res, 403, { error: 'Admin only' });
+    const id = userMatch[1];
+    if (req.method === 'PUT') {
+      const body = await readBody(req);
+      const user = manager.updateUser(id, body);
+      if (!user) return json(res, 404, { error: 'User not found' });
+      return json(res, 200, user);
+    }
+    if (req.method === 'DELETE') {
+      if (id === req.user.id) return json(res, 400, { error: "Can't delete yourself" });
+      manager.deleteUser(id);
+      return json(res, 200, { ok: true });
+    }
   }
 
   // ── Function Registry ───────────────────────────────────────────────────
@@ -127,7 +165,6 @@ const server = http.createServer(async (req, res) => {
   if (req.url === '/api/bots' && req.method === 'GET') {
     return json(res, 200, manager.getBots());
   }
-
   if (req.url === '/api/bots' && req.method === 'POST') {
     const body = await readBody(req);
     try {
@@ -157,7 +194,6 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  // ── Bot Start/Stop ─────────────────────────────────────────────────────
   const startMatch = req.url.match(/^\/api\/bots\/([^/]+)\/start$/);
   if (startMatch && req.method === 'POST') {
     try {
@@ -179,7 +215,6 @@ const server = http.createServer(async (req, res) => {
     return json(res, 200, result);
   }
 
-  // ── Function Config ────────────────────────────────────────────────────
   const funcMatch = req.url.match(/^\/api\/bots\/([^/]+)\/functions\/([^/]+)$/);
   if (funcMatch) {
     const [, botId, funcName] = funcMatch;
@@ -196,7 +231,6 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  // ── Bot Stats/Logs ─────────────────────────────────────────────────────
   const statsMatch = req.url.match(/^\/api\/bots\/([^/]+)\/stats$/);
   if (statsMatch && req.method === 'GET') {
     const stats = manager.getBotStats(statsMatch[1]);
@@ -209,14 +243,12 @@ const server = http.createServer(async (req, res) => {
     return json(res, 200, logs);
   }
 
-  // ── Validate Token ─────────────────────────────────────────────────────
   if (req.url === '/api/validate-token' && req.method === 'POST') {
     const body = await readBody(req);
     const result = await validateToken(body.token);
     return json(res, 200, result);
   }
 
-  // ── OAuth2 URL ─────────────────────────────────────────────────────────
   const oauthMatch = req.url.match(/^\/api\/oauth2-url\/([^/]+)$/);
   if (oauthMatch && req.method === 'GET') {
     const clientId = oauthMatch[1];
@@ -225,13 +257,14 @@ const server = http.createServer(async (req, res) => {
     return json(res, 200, { url });
   }
 
-  // ── Static Files ───────────────────────────────────────────────────────
   serveStatic(req, res);
 });
 
 server.listen(WEB_PORT, () => {
   console.log(`StarrBot dashboard: http://localhost:${WEB_PORT}`);
+  const users = manager.getUsers();
   const bots = manager.getBots();
+  if (users.length === 0) console.log('First-time setup: open dashboard to create admin account.');
   if (bots.length) console.log(`${bots.length} bot(s) configured. Start from dashboard.`);
   else console.log('No bots configured. Open dashboard to create one.');
 });

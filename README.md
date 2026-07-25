@@ -31,7 +31,8 @@ Open `http://YOUR_SERVER_IP:2013` — the onboarding wizard will guide you throu
 - **Overview** — status, posts sent, errors, last check, active functions
 - **Functions** — enable/disable Updates and Tickets, configure per-bot
 - **Settings** — change name, token, delete bot
-- **Global settings** — admin password
+- **User management** — multi-user auth with admin/viewer roles
+- **Settings** — global command prefix, theme picker
 
 ## Discord Commands
 

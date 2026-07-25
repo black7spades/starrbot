@@ -1,22 +1,26 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const EventEmitter = require('events');
 const ManagedBot = require('./managed-bot');
 
 const DATA_DIR = path.join(__dirname, 'data');
 const CONFIG_FILE = path.join(DATA_DIR, 'starrbot.json');
 
+function hashPw(pw) { return crypto.createHash('sha256').update(pw).digest('hex'); }
+
 class BotManager extends EventEmitter {
   constructor() {
     super();
     this.bots = new Map();
     this.config = this._load();
+    this._migrateAuth();
   }
 
   _load() {
     fs.mkdirSync(DATA_DIR, { recursive: true });
     if (!fs.existsSync(CONFIG_FILE)) {
-      const empty = { adminPassword: '', commandPrefix: '!', bots: [] };
+      const empty = { users: [], commandPrefix: '!', bots: [] };
       fs.writeFileSync(CONFIG_FILE, JSON.stringify(empty, null, 2));
       return empty;
     }
@@ -24,8 +28,17 @@ class BotManager extends EventEmitter {
       const data = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
       if (!data.commandPrefix) data.commandPrefix = '!';
       if (!data.bots) data.bots = [];
+      if (!data.users) data.users = [];
       return data;
-    } catch { return { adminPassword: '', commandPrefix: '!', bots: [] }; }
+    } catch { return { users: [], commandPrefix: '!', bots: [] }; }
+  }
+
+  _migrateAuth() {
+    if (this.config.adminPassword && this.config.users.length === 0) {
+      this.config.users.push({ id: 'admin', username: 'admin', passwordHash: hashPw(this.config.adminPassword), role: 'admin' });
+      delete this.config.adminPassword;
+      this.save();
+    }
   }
 
   save() {
@@ -33,24 +46,66 @@ class BotManager extends EventEmitter {
     fs.writeFileSync(CONFIG_FILE, JSON.stringify(serializable, null, 2));
   }
 
+  // ── Users ───────────────────────────────────────────────────────────────
+  getUsers() {
+    return this.config.users.map(u => ({ id: u.id, username: u.username, role: u.role }));
+  }
+
+  authenticate(username, password) {
+    const user = this.config.users.find(u => u.username === username);
+    if (!user) return null;
+    if (user.passwordHash !== hashPw(password)) return null;
+    return { id: user.id, username: user.username, role: user.role };
+  }
+
+  createUser({ username, password, role }) {
+    if (this.config.users.find(u => u.username === username)) throw new Error('Username already exists');
+    const id = username.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const user = { id, username, passwordHash: hashPw(password), role: role || 'viewer' };
+    this.config.users.push(user);
+    this.save();
+    return { id, username, role: user.role };
+  }
+
+  updateUser(id, updates) {
+    const user = this.config.users.find(u => u.id === id);
+    if (!user) return null;
+    if (updates.username) user.username = updates.username;
+    if (updates.password) user.passwordHash = hashPw(updates.password);
+    if (updates.role) user.role = updates.role;
+    this.save();
+    return { id: user.id, username: user.username, role: user.role };
+  }
+
+  deleteUser(id) {
+    this.config.users = this.config.users.filter(u => u.id !== id);
+    this.save();
+  }
+
+  // ── Bots ────────────────────────────────────────────────────────────────
   getBots() {
-    return this.config.bots.map(b => ({
-      id: b.id,
-      name: b.name,
-      enabled: b.enabled !== false,
-      status: this.bots.get(b.id)?.status || 'stopped',
-      error: this.bots.get(b.id)?.error || null,
-      guildCount: this.bots.get(b.id)?.client?.guilds?.cache?.size || 0,
-      activeFunctions: Object.entries(b.functions || {}).filter(([, v]) => v.enabled).map(([k]) => k),
-      allFunctions: Object.keys(b.functions || {}),
-    }));
+    return this.config.bots.map(b => {
+      const managed = this.bots.get(b.id);
+      const avatarUrl = b.avatarUrl || null;
+      return {
+        id: b.id,
+        name: b.name,
+        avatarUrl,
+        enabled: b.enabled !== false,
+        status: managed?.status || 'stopped',
+        error: managed?.error || null,
+        guildCount: managed?.client?.guilds?.cache?.size || 0,
+        activeFunctions: Object.entries(b.functions || {}).filter(([, v]) => v.enabled).map(([k]) => k),
+        allFunctions: Object.keys(b.functions || {}),
+      };
+    });
   }
 
   getBotConfig(id) {
     return this.config.bots.find(b => b.id === id) || null;
   }
 
-  createBot({ name, token, clientId }) {
+  createBot({ name, token, clientId, avatarUrl }) {
     const id = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     if (this.config.bots.find(b => b.id === id)) throw new Error('Bot with this name already exists');
     const bot = {
@@ -58,6 +113,7 @@ class BotManager extends EventEmitter {
       name,
       token: token || '',
       clientId: clientId || '',
+      avatarUrl: avatarUrl || null,
       enabled: true,
       functions: {
         updates: { enabled: false, commandPrefix: '', sources: [], channelId: '', checkInterval: 15, rsshubUrl: 'http://rsshub:1200' },
@@ -75,6 +131,7 @@ class BotManager extends EventEmitter {
     if (updates.name) this.config.bots[idx].name = updates.name;
     if (updates.token !== undefined) this.config.bots[idx].token = updates.token;
     if (updates.clientId !== undefined) this.config.bots[idx].clientId = updates.clientId;
+    if (updates.avatarUrl !== undefined) this.config.bots[idx].avatarUrl = updates.avatarUrl;
     this.save();
     return this.config.bots[idx];
   }
@@ -124,9 +181,6 @@ class BotManager extends EventEmitter {
     const managed = this.bots.get(id);
     return managed ? managed.getLogs() : [];
   }
-
-  getAdminPassword() { return this.config.adminPassword; }
-  setAdminPassword(pw) { this.config.adminPassword = pw; this.save(); }
 
   getSettings() {
     return { commandPrefix: this.config.commandPrefix || '!' };

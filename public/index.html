@@ -5,961 +5,972 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>StarrBot</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#1a1a2e;--sidebar:#16213e;--card:#1e2a45;--input:#0f1729;--accent:#5865F2;--accent-hover:#4752c4;--text:#e0e0e0;--text-dim:#888;--green:#57F287;--red:#ED4245;--yellow:#FEE75C;--border:#2a3a5c}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden}
-a{color:var(--accent);text-decoration:none}
-a:hover{text-decoration:underline}
+:root {
+  --bg: #1a1a2e;
+  --bg2: #16213e;
+  --bg3: #0f3460;
+  --text: #e6e6e6;
+  --text2: #a0a0a0;
+  --accent: #7b2ff7;
+  --accent2: #9d4edd;
+  --green: #2ecc71;
+  --red: #e74c3c;
+  --yellow: #f1c40f;
+  --border: #2a2a4a;
+  --sidebar: #0f0f23;
+  --card: #16213e;
+  --input-bg: #0f0f23;
+  --modal-bg: rgba(0,0,0,0.7);
+}
+[data-theme="light"] {
+  --bg: #f0f2f5;
+  --bg2: #ffffff;
+  --bg3: #e4e6eb;
+  --text: #1a1a2e;
+  --text2: #65676b;
+  --accent: #7b2ff7;
+  --accent2: #9d4edd;
+  --border: #dddfe2;
+  --sidebar: #ffffff;
+  --card: #ffffff;
+  --input-bg: #f0f2f5;
+  --modal-bg: rgba(0,0,0,0.4);
+}
+[data-theme="c64"] {
+  --bg: #40318d;
+  --bg2: #40318d;
+  --bg3: #6c5eb5;
+  --text: #7869c4;
+  --text2: #a092d0;
+  --accent: #6f3;
+  --accent2: #adff2f;
+  --green: #6f3;
+  --red: #d04040;
+  --yellow: #d0d040;
+  --border: #5040a0;
+  --sidebar: #302080;
+  --card: #40318d;
+  --input-bg: #302080;
+  --modal-bg: rgba(48,32,128,0.85);
+  --font: 'Courier New', monospace;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+[data-theme="c64"] body, [data-theme="c64"] { font-family: var(--font); }
 
-/* ── Sidebar ─────────────────────────────────────────── */
-#sidebar{width:260px;background:var(--sidebar);display:flex;flex-direction:column;border-right:1px solid var(--border);flex-shrink:0}
-.sidebar-header{padding:20px 16px 12px;border-bottom:1px solid var(--border)}
-.sidebar-header h1{font-size:18px;font-weight:700;color:#fff}
-.sidebar-header span{color:var(--accent);font-size:12px}
-.sidebar-nav{flex:1;overflow-y:auto;padding:8px}
-.sidebar-nav .section-label{font-size:11px;text-transform:uppercase;color:var(--text-dim);padding:12px 8px 4px;letter-spacing:0.5px}
-.sidebar-nav .section-label:first-child{padding-top:4px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;cursor:pointer;transition:background 0.15s;font-size:13px}
-.nav-item:hover{background:rgba(88,101,242,0.1)}
-.nav-item.active{background:rgba(88,101,242,0.2)}
-.nav-item .icon{width:18px;text-align:center;font-size:14px}
-.bot-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.bot-dot.stopped{background:#555}
-.bot-dot.running{background:var(--green)}
-.bot-dot.error{background:var(--red)}
-.bot-dot.starting{background:var(--yellow);animation:pulse 1s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-.sidebar-footer{padding:12px;border-top:1px solid var(--border)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border:none;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s}
-.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent-hover)}
-.btn-danger{background:var(--red);color:#fff}.btn-danger:hover{background:#c03537}
-.btn-secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}.btn-secondary:hover{background:#253555}
-.btn-success{background:var(--green);color:#111}.btn-success:hover{background:#45c774}
-.btn-sm{padding:5px 10px;font-size:11px}
-.btn-full{width:100%}
-.sidebar-btn{background:var(--card);color:var(--text);border:1px solid var(--border);padding:10px;border-radius:8px;font-size:13px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px;width:100%;margin-top:8px;transition:background 0.15s}
-.sidebar-btn:hover{background:rgba(88,101,242,0.1)}
+/* ── Sidebar ─────────────────────────────────────────────────────────────── */
+.sidebar {
+  width: 240px; min-width: 240px; background: var(--sidebar); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.sidebar-brand { padding: 16px; font-size: 18px; font-weight: 700; color: var(--accent2); border-bottom: 1px solid var(--border); }
+.sidebar-section { padding: 8px 12px 4px; font-size: 11px; text-transform: uppercase; color: var(--text2); letter-spacing: 0.5px; }
+.sidebar-item {
+  padding: 8px 16px; cursor: pointer; display: flex; align-items: center; gap: 10px;
+  font-size: 14px; color: var(--text2); transition: background 0.15s, color 0.15s;
+}
+.sidebar-item:hover { background: var(--bg3); color: var(--text); }
+.sidebar-item.active { background: var(--accent); color: #fff; }
+.sidebar-item .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.sidebar-item .dot.running { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.sidebar-item .dot.stopped { background: var(--red); }
+.sidebar-item .dot.starting { background: var(--yellow); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+.sidebar-bot-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-footer { margin-top: auto; border-top: 1px solid var(--border); }
 
-/* ── Main Content ────────────────────────────────────── */
-#main{flex:1;overflow-y:auto;padding:32px}
-.page{display:none;max-width:1000px;margin:0 auto}
-.page.active{display:block}
-.page h2{font-size:22px;margin-bottom:20px}
-.page h3{font-size:16px;margin:16px 0 8px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px}
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px}
-.stat-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
-.stat-card .value{font-size:28px;font-weight:700;color:#fff}
-.stat-card .label{font-size:12px;color:var(--text-dim);margin-top:4px}
-.form-group{margin-bottom:14px}
-.form-group label{display:block;font-size:13px;font-weight:500;margin-bottom:4px;color:var(--text-dim)}
-.form-group input,.form-group select,.form-group textarea{width:100%;padding:10px 12px;background:var(--input);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:14px}
-.form-group input:focus,.form-group select:focus{outline:none;border-color:var(--accent)}
-.form-hint{font-size:11px;color:var(--text-dim);margin-top:3px}
-.toast{position:fixed;bottom:20px;right:20px;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:500;z-index:1000;animation:fadeIn 0.2s}
-.toast-success{background:var(--green);color:#111}
-.toast-error{background:var(--red);color:#fff}
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+/* ── Theme Picker ────────────────────────────────────────────────────────── */
+.theme-row { display: flex; gap: 4px; padding: 10px 16px; }
+.theme-btn {
+  flex: 1; padding: 6px; border: 1px solid var(--border); border-radius: 6px;
+  background: var(--input-bg); color: var(--text2); cursor: pointer; font-size: 12px;
+  text-align: center; transition: border-color 0.15s;
+}
+.theme-btn:hover, .theme-btn.active { border-color: var(--accent); color: var(--text); }
 
-/* ── Table ───────────────────────────────────────────── */
-.data-table{width:100%;border-collapse:collapse;font-size:13px}
-.data-table th{text-align:left;padding:10px 12px;border-bottom:2px solid var(--border);color:var(--text-dim);font-size:11px;text-transform:uppercase;letter-spacing:0.5px}
-.data-table td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
-.data-table tr:hover td{background:rgba(88,101,242,0.05)}
-.data-table .actions{display:flex;gap:6px;align-items:center}
+/* ── Main Content ────────────────────────────────────────────────────────── */
+.main { flex: 1; overflow-y: auto; padding: 24px; }
+.page { display: none; }
+.page.active { display: block; }
 
-/* ── Toggle ──────────────────────────────────────────── */
-.toggle{position:relative;width:36px;height:20px;border-radius:10px;background:#444;cursor:pointer;transition:background 0.2s;flex-shrink:0}
-.toggle.on{background:var(--green)}
-.toggle::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform 0.2s}
-.toggle.on::after{transform:translateX(16px)}
+/* ── Cards & Tables ──────────────────────────────────────────────────────── */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.card-title { font-size: 16px; font-weight: 600; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
+th { color: var(--text2); font-weight: 500; font-size: 12px; text-transform: uppercase; }
+tr:last-child td { border-bottom: none; }
 
-/* ── Modal ───────────────────────────────────────────── */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:900;align-items:center;justify-content:center}
-.modal-overlay.open{display:flex}
-.modal{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:420px;width:90%}
-.modal h3{font-size:18px;margin-bottom:8px}
-.modal p{color:var(--text-dim);font-size:13px;margin-bottom:16px;line-height:1.5}
-.modal .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+/* ── Bot Avatar ──────────────────────────────────────────────────────────── */
+.bot-avatar {
+  width: 32px; height: 32px; border-radius: 50%; background: var(--bg3);
+  display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;
+}
+.bot-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.bot-avatar .fallback { font-size: 14px; font-weight: 600; color: var(--text2); }
+.bot-cell { display: flex; align-items: center; gap: 10px; }
 
-/* ── Wizard ──────────────────────────────────────────── */
-.wizard{max-width:600px;margin:0 auto}
-.wizard .step-indicator{display:flex;gap:4px;margin-bottom:24px}
-.wizard .step-dot{flex:1;height:4px;background:var(--border);border-radius:2px}
-.wizard .step-dot.done{background:var(--accent)}
-.wizard .step-dot.active{background:var(--green)}
-.wizard h2{font-size:20px;margin-bottom:4px}
-.wizard .subtitle{color:var(--text-dim);margin-bottom:20px}
-.wizard .step-actions{display:flex;gap:8px;margin-top:20px}
-.instructions{background:var(--input);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0;font-size:13px;line-height:1.6}
-.instructions code{background:var(--card);padding:2px 6px;border-radius:4px;font-size:12px}
-.instructions a{color:var(--accent)}
-.empty-state{text-align:center;padding:60px 20px;color:var(--text-dim)}
-.empty-state h3{color:var(--text);margin-bottom:8px}
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+.btn {
+  padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;
+  font-size: 13px; font-weight: 500; transition: opacity 0.15s; display: inline-flex; align-items: center; gap: 6px;
+}
+.btn:hover { opacity: 0.85; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-success { background: var(--green); color: #fff; }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text2); }
+.btn-outline:hover { border-color: var(--text2); color: var(--text); }
+.btn-lg { padding: 12px 24px; font-size: 15px; border-radius: 10px; }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-add-bot {
+  width: 100%; padding: 14px; border: 2px dashed var(--border); border-radius: 10px;
+  background: transparent; color: var(--text2); font-size: 15px; cursor: pointer;
+  transition: border-color 0.2s, color 0.2s; margin-bottom: 16px;
+}
+.btn-add-bot:hover { border-color: var(--accent); color: var(--accent); }
+.badge { padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; }
+.badge-admin { background: var(--accent); color: #fff; }
+.badge-viewer { background: var(--bg3); color: var(--text2); }
+.badge-running { background: rgba(46,204,113,0.15); color: var(--green); }
+.badge-stopped { background: rgba(231,76,60,0.15); color: var(--red); }
 
-/* ── Badge ───────────────────────────────────────────── */
-.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
-.badge-green{background:rgba(87,242,135,0.15);color:var(--green)}
-.badge-red{background:rgba(237,66,69,0.15);color:var(--red)}
-.badge-dim{background:rgba(136,136,136,0.15);color:var(--text-dim)}
+/* ── Forms ────────────────────────────────────────────────────────────────── */
+input, select {
+  padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--input-bg); color: var(--text); font-size: 13px; width: 100%;
+}
+input:focus, select:focus { outline: none; border-color: var(--accent); }
+label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 4px; font-weight: 500; }
+.form-group { margin-bottom: 14px; }
+.form-row { display: flex; gap: 12px; }
+.form-row > * { flex: 1; }
+.hint { font-size: 11px; color: var(--text2); margin-top: 3px; }
 
-/* ── Command list ────────────────────────────────────── */
-.cmd-list{display:flex;flex-direction:column;gap:4px;margin-top:8px}
-.cmd-item{display:flex;gap:8px;align-items:baseline;font-size:12px;padding:4px 0}
-.cmd-name{font-family:monospace;color:var(--accent);white-space:nowrap}
-.cmd-desc{color:var(--text-dim)}
-.cmd-perm{font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(136,136,136,0.15);color:var(--text-dim);white-space:nowrap}
+/* ── Modal ───────────────────────────────────────────────────────────────── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: var(--modal-bg);
+  z-index: 1000; align-items: center; justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 24px; width: 440px; max-width: 90vw;
+}
+.modal-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
 
-/* ── Error log ───────────────────────────────────────── */
-.error-log{max-height:300px;overflow-y:auto;font-family:monospace;font-size:12px;background:var(--input);border-radius:6px;padding:12px}
-.error-log .entry{padding:4px 0;border-bottom:1px solid var(--border)}
-.error-log .time{color:var(--text-dim)}
-.source-list{display:flex;flex-direction:column;gap:8px}
-.source-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--input);border-radius:6px}
-.source-item .url{flex:1;font-size:13px;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.source-item .label{font-size:12px;color:var(--text-dim);min-width:80px}
+/* ── Wizard ──────────────────────────────────────────────────────────────── */
+.wizard { display: flex; align-items: center; justify-content: center; height: 100vh; width: 100vw; position: fixed; inset: 0; z-index: 2000; background: var(--bg); }
+.wizard-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 40px; width: 420px; max-width: 90vw; text-align: center; }
+.wizard-box h2 { font-size: 22px; margin-bottom: 8px; }
+.wizard-box p { color: var(--text2); margin-bottom: 24px; font-size: 14px; }
+.wizard-step { display: none; text-align: left; }
+.wizard-step.active { display: block; }
+.wizard-nav { display: flex; gap: 8px; justify-content: flex-end; margin-top: 24px; }
+.wizard-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 24px; }
+.wizard-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); }
+.wizard-dot.active { background: var(--accent); }
+.wizard-check { color: var(--green); font-size: 14px; margin-top: 6px; display: none; }
+
+/* ── Login ───────────────────────────────────────────────────────────────── */
+.login-overlay {
+  display: none; position: fixed; inset: 0; z-index: 3000; background: var(--bg);
+  align-items: center; justify-content: center;
+}
+.login-overlay.show { display: flex; }
+
+/* ── Toast ───────────────────────────────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 10px;
+  background: var(--card); border: 1px solid var(--border); color: var(--text);
+  font-size: 13px; z-index: 5000; opacity: 0; transform: translateY(10px);
+  transition: opacity 0.3s, transform 0.3s; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.error { border-color: var(--red); }
+.toast.success { border-color: var(--green); }
+
+/* ── Misc ────────────────────────────────────────────────────────────────── */
+.empty { text-align: center; padding: 40px; color: var(--text2); font-size: 14px; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 6px; background: var(--bg3); font-size: 11px; color: var(--text2); margin: 2px; }
+.commands-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.cmd-tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; background: var(--bg3); font-size: 11px; }
+.cmd-tag .perm { color: var(--accent2); font-weight: 600; }
+.prefix-tag { font-family: monospace; color: var(--accent2); font-weight: 600; }
 </style>
 </head>
 <body>
 
-<div id="sidebar">
-  <div class="sidebar-header">
-    <h1>StarrBot</h1>
-    <span>multi-bot dashboard</span>
-  </div>
-  <div class="sidebar-nav">
-    <div class="section-label">Management</div>
-    <div class="nav-item active" id="nav-bots" onclick="showBotList()">
-      <span class="icon">&#x1F4E1;</span> Bot Management
+<!-- ── Login / Setup ──────────────────────────────────────────────────────── -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="wizard-box">
+    <h2 id="loginTitle">Sign in to StarrBot</h2>
+    <p id="loginSubtitle">Enter your credentials</p>
+    <div class="form-group">
+      <label>Username</label>
+      <input id="loginUser" placeholder="admin">
     </div>
-    <div class="section-label">Functions</div>
-    <div id="navFuncLinks"></div>
-    <div class="nav-item" onclick="showFunctionsRegistry()">
-      <span class="icon">&#x1F50D;</span> View All Functions
+    <div class="form-group">
+      <label>Password</label>
+      <input id="loginPass" type="password" placeholder="••••••••">
     </div>
-    <div class="nav-item" onclick="showFunctionsDeploy()">
-      <span class="icon">&#x2795;</span> Deploy Functions
+    <div id="loginError" style="color:var(--red);font-size:12px;margin-top:8px;display:none"></div>
+    <div style="margin-top:16px">
+      <button class="btn btn-primary btn-lg" style="width:100%" onclick="doLogin()">Sign In</button>
     </div>
-    <div class="section-label">System</div>
-    <div class="nav-item" id="nav-settings" onclick="showGlobalSettings()">
-      <span class="icon">&#x2699;</span> Settings
-    </div>
-  </div>
-  <div class="sidebar-footer">
-    <button class="sidebar-btn" onclick="showAddBot()">+ Add Bot</button>
   </div>
 </div>
 
-<div id="main">
-  <!-- Login -->
-  <div id="loginPage" class="page active" style="display:none">
-    <div style="max-width:360px;margin:100px auto;text-align:center">
-      <h2>StarrBot</h2>
-      <p style="color:var(--text-dim);margin:8px 0 20px">Enter password to continue</p>
+<!-- ── Onboarding Wizard ─────────────────────────────────────────────────── -->
+<div class="wizard" id="wizard" style="display:none">
+  <div class="wizard-box">
+    <h2>Welcome to StarrBot</h2>
+    <p>Set up your first admin account and bot</p>
+    <div class="wizard-dots"><div class="wizard-dot active"></div><div class="wizard-dot"></div></div>
+
+    <div class="wizard-step active" id="wizStep1">
       <div class="form-group">
-        <input type="password" id="loginPw" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+        <label>Admin Username</label>
+        <input id="wizUser" placeholder="admin">
       </div>
-      <button class="btn btn-primary btn-full" onclick="doLogin()">Login</button>
+      <div class="form-group">
+        <label>Admin Password</label>
+        <input id="wizPass" type="password" placeholder="••••••••">
+      </div>
     </div>
-  </div>
 
-  <!-- Onboarding Wizard -->
-  <div id="onboardingPage" class="page">
-    <div class="wizard">
-      <div class="step-indicator" id="wizardSteps"></div>
-      <div id="wizardContent"></div>
-    </div>
-  </div>
-
-  <!-- Bot Management List -->
-  <div id="botListPage" class="page">
-    <h2>Bot Management</h2>
-    <div class="card" style="padding:0;overflow:hidden">
-      <table class="data-table" id="botTable">
-        <thead>
-          <tr>
-            <th>Status</th>
-            <th>Name</th>
-            <th>Servers</th>
-            <th>Errors</th>
-            <th>Functions</th>
-            <th>Enabled</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="botTableBody"></tbody>
-      </table>
-    </div>
-    <div id="botListEmpty" class="empty-state" style="display:none">
-      <h3>No bots yet</h3>
-      <p style="color:var(--text-dim);margin-bottom:16px">Create your first bot to get started</p>
-      <button class="btn btn-primary" onclick="showAddBot()">+ Add Bot</button>
-    </div>
-  </div>
-
-  <!-- Bot Overview (per-bot detail) -->
-  <div id="overviewPage" class="page">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
-      <button class="btn btn-sm btn-secondary" onclick="showBotList()">&larr; Back</button>
-      <h2 id="overviewTitle" style="margin:0">Bot Overview</h2>
-    </div>
-    <div class="stat-grid" id="overviewStats"></div>
-    <div id="overviewActions"></div>
-    <div class="card">
-      <h3>Error Log</h3>
-      <div class="error-log" id="errorLog"><div class="empty-state" style="padding:20px">No errors</div></div>
-    </div>
-  </div>
-
-  <!-- Bot Functions Config (per-bot) -->
-  <div id="functionsPage" class="page">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
-      <button class="btn btn-sm btn-secondary" onclick="showBotList()">&larr; Back</button>
-      <h2 id="functionsTitle" style="margin:0">Functions</h2>
-    </div>
-    <div id="functionsContent"></div>
-  </div>
-
-  <!-- Bot Settings (per-bot) -->
-  <div id="botSettingsPage" class="page">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
-      <button class="btn btn-sm btn-secondary" onclick="showBotList()">&larr; Back</button>
-      <h2 style="margin:0">Bot Settings</h2>
-    </div>
-    <div class="card">
+    <div class="wizard-step" id="wizStep2">
       <div class="form-group">
         <label>Bot Name</label>
-        <input type="text" id="settingName">
+        <input id="wizBotName" placeholder="My Bot">
       </div>
       <div class="form-group">
         <label>Bot Token</label>
-        <input type="password" id="settingToken" placeholder="Leave empty to keep current">
-        <div class="form-hint">Bot tokens are masked in the dashboard and API responses</div>
+        <input id="wizBotToken" type="password" placeholder="MTI...">
       </div>
-      <div style="display:flex;gap:8px;margin-top:16px">
-        <button class="btn btn-primary" onclick="saveBotSettings()">Save</button>
-        <button class="btn btn-danger" onclick="promptDeleteBot(selectedBot)">Delete Bot</button>
+      <div class="form-group">
+        <label>Client ID</label>
+        <input id="wizClientId" placeholder="123456789012345678">
       </div>
+      <div id="wizCheck" class="wizard-check"></div>
+    </div>
+
+    <div class="wizard-nav">
+      <button class="btn btn-outline" id="wizBack" onclick="wizNav(-1)" style="display:none">Back</button>
+      <button class="btn btn-primary" id="wizNext" onclick="wizNav(1)">Next</button>
     </div>
   </div>
+</div>
 
-  <!-- Functions Registry (all functions, commands) -->
-  <div id="funcsRegistryPage" class="page">
-    <h2>All Functions</h2>
-    <div id="funcsRegistryContent"></div>
+<!-- ── App Shell ──────────────────────────────────────────────────────────── -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-brand">★ StarrBot</div>
+
+  <div class="sidebar-section">Bot Management</div>
+  <div id="sidebarBots"></div>
+
+  <div class="sidebar-section">Functions</div>
+  <div class="sidebar-item" onclick="showPage('functions')">
+    <span>⚡</span> <span>Function Registry</span>
+  </div>
+  <div class="sidebar-item" onclick="showPage('deploy')">
+    <span>🚀</span> <span>Deploy Functions</span>
   </div>
 
-  <!-- Functions Deploy (which bots have which functions) -->
-  <div id="funcsDeployPage" class="page">
-    <h2>Function Deployment</h2>
-    <div class="card" style="padding:0;overflow:hidden">
-      <table class="data-table" id="deployTable">
-        <thead>
-          <tr>
-            <th>Function</th>
-            <th>Description</th>
-            <th>Deployed To</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="deployTableBody"></tbody>
+  <div class="sidebar-footer">
+    <div class="sidebar-section">Settings</div>
+    <div class="sidebar-item" onclick="showPage('botManagement')">
+      <span>🤖</span> <span>Bot Management</span>
+    </div>
+    <div class="sidebar-item" onclick="showPage('globalSettings')">
+      <span>⚙️</span> <span>Settings</span>
+    </div>
+    <div class="sidebar-item" onclick="showPage('userManagement')">
+      <span>👥</span> <span>User Management</span>
+    </div>
+    <div class="theme-row">
+      <div class="theme-btn" data-theme="dark" onclick="setTheme('dark')">Dark</div>
+      <div class="theme-btn" data-theme="light" onclick="setTheme('light')">Light</div>
+      <div class="theme-btn" data-theme="c64" onclick="setTheme('c64')">C64</div>
+    </div>
+  </div>
+</div>
+
+<div class="main" id="main">
+
+  <!-- Bot Management -->
+  <div class="page" id="botManagementPage">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">All Bots</div>
+      </div>
+      <button class="btn-add-bot" onclick="showAddBotModal()">+ Add Bot</button>
+      <table>
+        <thead><tr><th></th><th>Name</th><th>Status</th><th>Servers</th><th>Functions</th><th>Actions</th></tr></thead>
+        <tbody id="botTableBody"></tbody>
       </table>
+      <div class="empty" id="botTableEmpty" style="display:none">No bots yet. Click "+ Add Bot" to create one.</div>
     </div>
-    <div id="deployEmpty" class="empty-state" style="display:none">
-      <h3>No functions registered</h3>
-      <p style="color:var(--text-dim)">Add function modules to the <code>functions/</code> directory</p>
+  </div>
+
+  <!-- Bot Detail (edit token/clientId) -->
+  <div class="page" id="botDetailPage">
+    <div id="botDetailContent"></div>
+  </div>
+
+  <!-- Functions Registry -->
+  <div class="page" id="functionsPage">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:16px">Function Registry</div>
+      <div id="functionsRegistry"></div>
+    </div>
+  </div>
+
+  <!-- Deploy Functions -->
+  <div class="page" id="deployPage">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:16px">Deploy Functions</div>
+      <div id="deployTable"></div>
     </div>
   </div>
 
   <!-- Global Settings -->
-  <div id="globalSettingsPage" class="page">
-    <h2>Settings</h2>
+  <div class="page" id="globalSettingsPage">
     <div class="card">
-      <h3>Account</h3>
+      <div class="card-title" style="margin-bottom:16px">Global Settings</div>
       <div class="form-group">
-        <label>Admin Password</label>
-        <input type="password" id="globalPw" placeholder="Set or change password">
-        <div class="form-hint">Required for dashboard and API access</div>
+        <label>Global Command Prefix</label>
+        <input id="globalPrefix" placeholder="!" maxlength="5"
+               oninput="this.value=this.value.replace(/[a-zA-Z0-9]/g,'')">
+        <div class="hint">Punctuation/special chars only. Per-function prefixes override this.</div>
       </div>
-      <button class="btn btn-primary" onclick="saveGlobalPw()">Save Password</button>
+      <button class="btn btn-primary" onclick="saveGlobalSettings()">Save</button>
     </div>
+  </div>
+
+  <!-- User Management -->
+  <div class="page" id="userManagementPage">
     <div class="card">
-      <h3>Command Prefix</h3>
-      <div class="form-group">
-        <label>Global Prefix</label>
-        <div style="display:flex;gap:8px;align-items:center">
-          <input type="text" id="globalPrefix" maxlength="3" style="width:60px;text-align:center;font-size:18px;font-family:monospace" placeholder="!" oninput="this.value=this.value.replace(/[a-zA-Z0-9]/g,'')">
-          <span style="color:var(--text-dim);font-size:13px">Applied to all bots unless overridden per-function</span>
-        </div>
-        <div class="form-hint">Punctuation/special characters only (!, ?, #, ., /, etc)</div>
+      <div class="card-header">
+        <div class="card-title">Users</div>
+        <button class="btn btn-primary btn-sm" onclick="showAddUserModal()">+ Add User</button>
       </div>
-      <button class="btn btn-primary" onclick="saveGlobalPrefix()">Save Prefix</button>
-    </div>
-    <div class="card">
-      <h3>Danger Zone</h3>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-danger" onclick="promptResetAll()">Reset Everything</button>
-      </div>
-      <div class="form-hint" style="margin-top:4px">This will delete all bots, functions, and settings</div>
+      <table>
+        <thead><tr><th>Username</th><th>Role</th><th>Actions</th></tr></thead>
+        <tbody id="userTableBody"></tbody>
+      </table>
     </div>
   </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal-overlay" id="deleteModal">
+<!-- ── Add Bot Modal ─────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="addBotModal">
   <div class="modal">
-    <h3 id="deleteModalTitle">Are You Sure?</h3>
-    <p id="deleteModalDesc">This action cannot be undone.</p>
+    <div class="modal-title">Add Bot</div>
     <div class="form-group">
-      <label id="deleteModalLabel">Type the bot name to confirm:</label>
-      <input type="text" id="deleteModalInput" placeholder="" oninput="checkDeleteConfirm()">
+      <label>Bot Name</label>
+      <input id="addBotName" placeholder="My Bot">
     </div>
-    <div id="deleteModalError" style="color:var(--red);font-size:12px;margin-bottom:8px"></div>
+    <div class="form-group">
+      <label>Bot Token</label>
+      <input id="addBotToken" type="password" placeholder="MTI...">
+    </div>
+    <div class="form-group">
+      <label>Client ID</label>
+      <input id="addBotClientId" placeholder="123456789012345678">
+    </div>
+    <div id="addBotCheck" class="wizard-check"></div>
     <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeModal('deleteModal')">Cancel</button>
-      <button class="btn btn-danger" id="deleteModalBtn" disabled onclick="confirmDelete()">Delete</button>
+      <button class="btn btn-outline" onclick="closeModal('addBotModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddBot()">Create</button>
     </div>
   </div>
 </div>
+
+<!-- ── Delete Bot Modal ──────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="deleteBotModal">
+  <div class="modal">
+    <div class="modal-title">Delete Bot</div>
+    <p style="color:var(--text2);font-size:13px;margin-bottom:12px">Type the bot name to confirm deletion:</p>
+    <div class="form-group">
+      <input id="deleteBotConfirm" placeholder="Bot name" oninput="checkDeleteBot()">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('deleteBotModal')">Cancel</button>
+      <button class="btn btn-danger" id="deleteBotBtn" disabled onclick="submitDeleteBot()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Add User Modal ────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="addUserModal">
+  <div class="modal">
+    <div class="modal-title">Add User</div>
+    <div class="form-group">
+      <label>Username</label>
+      <input id="addUserName" placeholder="username">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input id="addUserPass" type="password" placeholder="••••••••">
+    </div>
+    <div class="form-group">
+      <label>Role</label>
+      <select id="addUserRole">
+        <option value="viewer">Viewer (read-only)</option>
+        <option value="admin">Admin (full access)</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('addUserModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAddUser()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Edit User Modal ───────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="editUserModal">
+  <div class="modal">
+    <div class="modal-title">Edit User</div>
+    <input id="editUserId" type="hidden">
+    <div class="form-group">
+      <label>Username</label>
+      <input id="editUserName">
+    </div>
+    <div class="form-group">
+      <label>New Password (leave blank to keep)</label>
+      <input id="editUserPass" type="password" placeholder="••••••••">
+    </div>
+    <div class="form-group">
+      <label>Role</label>
+      <select id="editUserRole">
+        <option value="viewer">Viewer</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('editUserModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitEditUser()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ──────────────────────────────────────────────────────────────── -->
+<div class="toast" id="toast"></div>
 
 <script>
-let pw = '';
+let currentUser = null;
 let bots = [];
-let funcRegistry = [];
-let selectedBot = null;
-let currentPage = 'botList';
-let deleteState = { id: null, name: '', type: 'bot' };
-let wizardState = { step: 0, token: '', clientId: '', name: '', serverId: '', botInfo: null };
+let functionsRegistry = [];
+let deleteBotTarget = null;
+const SSE_URL = '/api/events';
 
-const API = {
-  async get(url) { return fetch(url, { headers: { 'X-Admin-Password': pw } }).then(r => r.json()); },
-  async post(url, body) { return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Password': pw }, body: JSON.stringify(body) }).then(r => r.json()); },
-  async put(url, body) { return fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Admin-Password': pw }, body: JSON.stringify(body) }).then(r => r.json()); },
-  async del(url) { return fetch(url, { method: 'DELETE', headers: { 'X-Admin-Password': pw } }).then(r => r.json()); },
-};
-
-function toast(msg, type='success') {
-  const el = document.createElement('div');
-  el.className = `toast toast-${type}`;
-  el.textContent = msg;
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 3000);
+// ── API helpers ───────────────────────────────────────────────────────────
+async function api(url, opts = {}) {
+  const headers = { 'Content-Type': 'application/json', ...opts.headers };
+  if (currentUser) {
+    headers['X-Username'] = currentUser.username;
+    headers['X-Password'] = currentUser._password;
+  }
+  const res = await fetch(url, { ...opts, headers });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Request failed');
+  return data;
 }
 
+// ── Theme ─────────────────────────────────────────────────────────────────
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('starrbot-theme', t);
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === t));
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  setTimeout(() => el.className = 'toast', 3000);
+}
+
+// ── Login ─────────────────────────────────────────────────────────────────
+async function checkAuth() {
+  const status = await api('/api/status');
+  if (!status.hasUsers) {
+    document.getElementById('wizard').style.display = 'flex';
+    document.getElementById('loginOverlay').classList.remove('show');
+    return false;
+  }
+  const saved = localStorage.getItem('starrbot-cred');
+  if (saved) {
+    const cred = JSON.parse(saved);
+    try {
+      const data = await api('/api/auth/login', { method: 'POST', body: JSON.stringify(cred) });
+      currentUser = { ...data.user, _password: cred.password };
+      document.getElementById('loginOverlay').classList.remove('show');
+      return true;
+    } catch { localStorage.removeItem('starrbot-cred'); }
+  }
+  document.getElementById('loginOverlay').classList.add('show');
+  return false;
+}
+
+async function doLogin() {
+  const u = document.getElementById('loginUser').value;
+  const p = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginError');
+  try {
+    const data = await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ username: u, password: p }) });
+    currentUser = { ...data.user, _password: p };
+    localStorage.setItem('starrbot-cred', JSON.stringify({ username: u, password: p }));
+    document.getElementById('loginOverlay').classList.remove('show');
+    document.getElementById('loginError').style.display = 'none';
+    init();
+  } catch (e) {
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+// Enter key on login
+document.getElementById('loginPass')?.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+// ── Wizard ────────────────────────────────────────────────────────────────
+let wizStep = 0;
+function wizNav(dir) {
+  const steps = document.querySelectorAll('.wizard-step');
+  const dots = document.querySelectorAll('.wizard-dot');
+  if (dir === 1 && wizStep === 0) {
+    const u = document.getElementById('wizUser').value;
+    const p = document.getElementById('wizPass').value;
+    if (!u || !p) return toast('Fill in username and password', 'error');
+  }
+  if (dir === 1 && wizStep === 1) {
+    return submitWizard();
+  }
+  wizStep += dir;
+  steps.forEach((s, i) => s.classList.toggle('active', i === wizStep));
+  dots.forEach((d, i) => d.classList.toggle('active', i === wizStep));
+  document.getElementById('wizBack').style.display = wizStep === 0 ? 'none' : '';
+  document.getElementById('wizNext').textContent = wizStep === 1 ? 'Finish' : 'Next';
+}
+
+async function submitWizard() {
+  try {
+    const u = document.getElementById('wizUser').value;
+    const p = document.getElementById('wizPass').value;
+    await api('/api/auth/setup', { method: 'POST', body: JSON.stringify({ username: u, password: p }) });
+    currentUser = { username: u, _password: p, role: 'admin' };
+    localStorage.setItem('starrbot-cred', JSON.stringify({ username: u, password: p }));
+    const name = document.getElementById('wizBotName').value;
+    const token = document.getElementById('wizBotToken').value;
+    const clientId = document.getElementById('wizClientId').value;
+    if (name) {
+      const result = await api('/api/bots', { method: 'POST', body: JSON.stringify({ name, token, clientId }) });
+      if (token) {
+        try { await api('/api/bots/' + result.id + '/start', { method: 'POST' }); } catch {}
+      }
+    }
+    document.getElementById('wizard').style.display = 'none';
+    init();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ── Pages ─────────────────────────────────────────────────────────────────
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const el = document.getElementById(id + 'Page');
   if (el) el.classList.add('active');
+  document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
 }
 
-function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-
-function timeSince(ts) {
-  const diff = Date.now() - new Date(ts).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return 'Just now';
-  if (m < 60) return `${m}m ago`;
-  return `${Math.floor(m/60)}h ${m%60}m ago`;
-}
-
-// ── Sidebar ────────────────────────────────────────────
-function renderSidebar() {
-  const el = document.getElementById('navFuncLinks');
-  el.innerHTML = funcRegistry.map(f => `
-    <div class="nav-item" onclick="showFuncDetail('${f.name}')">
-      <span class="icon">${f.icon || '&#x2699;'}</span> ${esc(f.label)}
+// ── Sidebar Bots ──────────────────────────────────────────────────────────
+function renderSidebarBots() {
+  const el = document.getElementById('sidebarBots');
+  el.innerHTML = bots.map(b => `
+    <div class="sidebar-item" onclick="openBotDetail('${b.id}')">
+      <div class="dot ${b.status}"></div>
+      <span class="sidebar-bot-name">${esc(b.name)}</span>
     </div>
   `).join('');
 }
 
-function setActiveNav(id) {
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const el = document.getElementById(id);
-  if (el) el.classList.add('active');
-}
-
-// ── Login / Init ───────────────────────────────────────
-async function init() {
-  const status = await API.get('/api/status');
-  funcRegistry = await API.get('/api/functions');
-  renderSidebar();
-  if (!status.configured && !status.hasPassword) {
-    showPage('onboarding');
-    renderWizard();
-    return;
-  }
-  if (status.hasPassword && !pw) {
-    document.getElementById('loginPage').style.display = 'block';
-    showPage('login');
-    return;
-  }
-  await loadBots();
-}
-
-async function doLogin() {
-  pw = document.getElementById('loginPw').value;
-  const res = await API.post('/api/auth/login', { password: pw });
-  if (res.error) { toast(res.error, 'error'); return; }
-  document.getElementById('loginPage').style.display = 'none';
-  await loadBots();
-}
-
-// ── Bot List ───────────────────────────────────────────
-async function loadBots() {
-  bots = await API.get('/api/bots');
-  funcRegistry = await API.get('/api/functions');
-  renderSidebar();
-  renderBotTable();
-}
-
+// ── Bot Management Table ──────────────────────────────────────────────────
 function renderBotTable() {
   const tbody = document.getElementById('botTableBody');
-  const empty = document.getElementById('botListEmpty');
-  if (!bots.length) {
-    tbody.innerHTML = '';
-    empty.style.display = 'block';
-    return;
-  }
+  const empty = document.getElementById('botTableEmpty');
+  if (bots.length === 0) { tbody.innerHTML = ''; empty.style.display = ''; return; }
   empty.style.display = 'none';
   tbody.innerHTML = bots.map(b => {
-    const totalFuncs = (b.allFunctions || []).length;
-    const activeFuncs = (b.activeFunctions || []).length;
+    const avatar = b.avatarUrl
+      ? `<img src="${esc(b.avatarUrl)}" alt="">`
+      : `<span class="fallback">${esc(b.name[0]?.toUpperCase() || '?')}</span>`;
+    const statusBadge = `<span class="badge badge-${b.status === 'running' ? 'running' : 'stopped'}">${b.status}</span>`;
+    const funcs = `${b.activeFunctions.length}/${b.allFunctions.length}`;
+    const actions = b.status === 'running'
+      ? `<button class="btn btn-danger btn-sm" onclick="stopBot('${b.id}')">Stop</button>`
+      : `<button class="btn btn-success btn-sm" onclick="startBot('${b.id}')">Start</button>`;
     return `<tr>
-      <td><div class="bot-dot ${b.status}" title="${b.status}"></div></td>
-      <td><strong style="cursor:pointer;color:var(--accent)" onclick="selectBot('${b.id}')">${esc(b.name)}</strong></td>
-      <td>${b.guildCount || 0}</td>
-      <td>${b.error ? `<span class="badge badge-red">${esc(b.error)}</span>` : `<span class="badge badge-green">0</span>`}</td>
-      <td><span class="badge ${activeFuncs > 0 ? 'badge-green' : 'badge-dim'}">${activeFuncs}/${totalFuncs}</span></td>
-      <td><div class="toggle ${b.enabled !== false ? 'on' : ''}" onclick="toggleBot('${b.id}')"></div></td>
-      <td class="actions">
-        <button class="btn btn-sm btn-secondary" onclick="selectBot('${b.id}')">&#x2139; Overview</button>
-        <button class="btn btn-sm btn-secondary" onclick="showBotFunctions('${b.id}')">&#x2699; Configure</button>
-        <button class="btn btn-sm btn-danger" onclick="promptDeleteBot('${b.id}')">&#x1F5D1;</button>
+      <td><div class="bot-avatar">${avatar}</div></td>
+      <td><div class="bot-cell"><strong>${esc(b.name)}</strong></div></td>
+      <td>${statusBadge}</td>
+      <td>${b.guildCount}</td>
+      <td>${funcs}</td>
+      <td style="display:flex;gap:6px">
+        ${actions}
+        <button class="btn btn-outline btn-sm" onclick="openBotDetail('${b.id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="confirmDeleteBot('${b.id}','${esc(b.name)}')">Delete</button>
       </td>
     </tr>`;
   }).join('');
 }
 
-function showBotList() {
-  selectedBot = null;
-  currentPage = 'botList';
-  setActiveNav('nav-bots');
-  showPage('botList');
-  renderBotTable();
-}
-
-async function toggleBot(id) {
-  await API.post(`/api/bots/${id}/toggle`);
-  await loadBots();
-}
-
-// ── Bot Overview ───────────────────────────────────────
-function selectBot(id) {
-  selectedBot = id;
-  currentPage = 'overview';
-  showBotOverview(id);
-}
-
-async function showBotOverview(id) {
-  const bot = bots.find(b => b.id === id);
-  if (!bot) return;
-  selectedBot = id;
-  document.getElementById('overviewTitle').textContent = bot.name;
-  const stats = await API.get(`/api/bots/${id}/stats`);
-  const logs = await API.get(`/api/bots/${id}/logs`);
-  const config = await API.get(`/api/bots/${id}`);
-
-  document.getElementById('overviewStats').innerHTML = `
-    <div class="stat-card"><div class="value" style="color:${bot.status==='running'?'var(--green)':bot.status==='error'?'var(--red)':'#555'}">${bot.status}</div><div class="label">Status</div></div>
-    <div class="stat-card"><div class="value">${stats.postsSent||0}</div><div class="label">Posts Sent</div></div>
-    <div class="stat-card"><div class="value">${stats.errors||0}</div><div class="label">Errors</div></div>
-    <div class="stat-card"><div class="value">${stats.lastCheck ? timeSince(stats.lastCheck) : 'Never'}</div><div class="label">Last Check</div></div>
-    <div class="stat-card"><div class="value">${stats.ticketsCreated||0}</div><div class="label">Tickets</div></div>
-    <div class="stat-card"><div class="value">${(stats.functions||[]).length}</div><div class="label">Active Functions</div></div>
-  `;
-
-  const logEl = document.getElementById('errorLog');
-  if (logs.length) {
-    logEl.innerHTML = logs.map(l => `<div class="entry"><span class="time">${new Date(l.timestamp).toLocaleTimeString()}</span> ${esc(l.message)}</div>`).join('');
-  } else {
-    logEl.innerHTML = '<div class="empty-state" style="padding:20px">No logs</div>';
-  }
-
-  const hasToken = !!config.token;
-  const startStop = bot.status === 'running'
-    ? `<button class="btn btn-danger" onclick="stopBot('${id}')">Stop Bot</button>`
-    : `<button class="btn btn-success" onclick="startBot('${id}')" ${!hasToken?'disabled title="Set token first"':''}>Start Bot</button>`;
-
-  document.getElementById('overviewActions').innerHTML = `<div style="display:flex;gap:8px;margin-bottom:16px">${startStop}<button class="btn btn-secondary" onclick="showBotFunctions('${id}')">Configure Functions</button><button class="btn btn-secondary" onclick="showBotSettings('${id}')">Settings</button></div>`;
-
-  showPage('overview');
-}
-
-async function startBot(id) {
-  toast('Starting bot...');
-  const res = await API.post(`/api/bots/${id}/start`);
-  if (res.error) { toast(res.error, 'error'); }
-  await loadBots();
-  if (selectedBot) showBotOverview(id);
-}
-
-async function stopBot(id) {
-  await API.post(`/api/bots/${id}/stop`);
-  await loadBots();
-  if (selectedBot) showBotOverview(id);
-}
-
-// ── Add Bot Wizard ─────────────────────────────────────
-function showAddBot() {
-  wizardState = { step: 0, token: '', clientId: '', name: '', serverId: '', botInfo: null };
-  showPage('onboarding');
-  renderWizard();
-}
-
-const WIZARD_STEPS = ['Create Bot', 'Credentials', 'Invite', 'Done'];
-
-function renderWizard() {
-  const ind = document.getElementById('wizardSteps');
-  ind.innerHTML = WIZARD_STEPS.map((_, i) => `<div class="step-dot ${i < wizardState.step ? 'done' : i === wizardState.step ? 'active' : ''}"></div>`).join('');
-  const c = document.getElementById('wizardContent');
-
-  if (wizardState.step === 0) {
-    c.innerHTML = `
-      <h2>Create a Discord Bot</h2>
-      <p class="subtitle">Step 1 of ${WIZARD_STEPS.length}</p>
-      <div class="instructions">
-        <ol style="padding-left:16px">
-          <li>Go to <a href="https://discord.com/developers/applications" target="_blank">Discord Developer Portal</a></li>
-          <li>Click <strong>New Application</strong> and give it a name</li>
-          <li>Go to <strong>Bot</strong> in the left sidebar</li>
-          <li>Click <strong>Reset Token</strong> and copy the token</li>
-          <li>Under <strong>Privileged Gateway Intents</strong>, enable:<br>- Message Content Intent<br>- Server Members Intent</li>
-        </ol>
-      </div>
-      <div class="step-actions">
-        <button class="btn btn-primary" onclick="wizardState.step=1;renderWizard()">Next: Enter Credentials</button>
-      </div>
-    `;
-  } else if (wizardState.step === 1) {
-    c.innerHTML = `
-      <h2>Enter Credentials</h2>
-      <p class="subtitle">Step 2 of ${WIZARD_STEPS.length}</p>
-      <div class="form-group">
-        <label>Bot Name</label>
-        <input type="text" id="wizName" value="${esc(wizardState.name)}" placeholder="e.g. Mkitty">
-      </div>
-      <div class="form-group">
-        <label>Bot Token</label>
-        <input type="password" id="wizToken" value="${esc(wizardState.token)}" placeholder="Paste your bot token">
-      </div>
-      <div class="form-group">
-        <label>Application (Client) ID</label>
-        <input type="text" id="wizClientId" value="${esc(wizardState.clientId)}" placeholder="Found on the General Information page">
-      </div>
-      <div id="wizValidation" style="margin:8px 0;font-size:13px"></div>
-      <div class="step-actions">
-        <button class="btn btn-secondary" onclick="wizardState.step=0;renderWizard()">Back</button>
-        <button class="btn btn-primary" onclick="validateAndNext()">Validate & Next</button>
-      </div>
-    `;
-  } else if (wizardState.step === 2) {
-    const cid = wizardState.clientId;
-    const oauthUrl = `https://discord.com/api/oauth2/authorize?client_id=${cid}&permissions=2147485696&scope=bot%20applications.commands`;
-    c.innerHTML = `
-      <h2>Invite to Server</h2>
-      <p class="subtitle">Step 3 of ${WIZARD_STEPS.length}</p>
-      <div class="instructions">
-        <p>Click the link below to invite your bot to a Discord server:</p>
-        <p style="margin:12px 0"><a href="${oauthUrl}" target="_blank" class="btn btn-primary">Invite Bot to Server</a></p>
-        <p style="color:var(--text-dim);font-size:12px">Make sure you have <strong>Manage Server</strong> permission on the target server.</p>
-      </div>
-      <div class="step-actions">
-        <button class="btn btn-secondary" onclick="wizardState.step=1;renderWizard()">Back</button>
-        <button class="btn btn-primary" onclick="wizardState.step=3;renderWizard()">Next: Finish</button>
-      </div>
-    `;
-  } else if (wizardState.step === 3) {
-    c.innerHTML = `
-      <h2>All Done!</h2>
-      <p class="subtitle">Step ${WIZARD_STEPS.length} of ${WIZARD_STEPS.length}</p>
-      <div class="instructions">
-        <p>Your bot <strong>${esc(wizardState.name)}</strong> has been created in StarrBot.</p>
-        <p style="margin:8px 0">It's currently <strong>stopped</strong>. You can:</p>
-        <ul style="padding-left:16px">
-          <li>Configure functions from <strong>Bot Management</strong></li>
-          <li>Click <strong>Start Bot</strong> to bring it online</li>
-        </ul>
-      </div>
-      <div class="step-actions">
-        <button class="btn btn-success" onclick="finishWizard()">Create Bot & Go to Dashboard</button>
-      </div>
-    `;
-  }
-}
-
-async function validateAndNext() {
-  wizardState.name = document.getElementById('wizName').value.trim();
-  wizardState.token = document.getElementById('wizToken').value.trim();
-  wizardState.clientId = document.getElementById('wizClientId').value.trim();
-  if (!wizardState.name || !wizardState.token || !wizardState.clientId) { toast('All fields required', 'error'); return; }
-  const el = document.getElementById('wizValidation');
-  el.innerHTML = '<span style="color:var(--yellow)">Validating token...</span>';
-  const res = await API.post('/api/validate-token', { token: wizardState.token });
-  if (!res.valid) { el.innerHTML = `<span style="color:var(--red)">Invalid token: ${esc(res.error)}</span>`; return; }
-  el.innerHTML = `<span style="color:var(--green)">Valid! Bot: ${esc(res.bot.username)}#${res.bot.discriminator || '0'}</span>`;
-  wizardState.step = 2;
-  renderWizard();
-}
-
-async function finishWizard() {
-  const res = await API.post('/api/bots', { name: wizardState.name, token: wizardState.token, clientId: wizardState.clientId });
-  if (res.error) { toast(res.error, 'error'); return; }
-  toast('Bot created!');
-  await loadBots();
-  showBotList();
-}
-
-// ── Functions Registry ─────────────────────────────────
-async function showFunctionsRegistry() {
-  setActiveNav('');
-  funcRegistry = await API.get('/api/functions');
-  const el = document.getElementById('funcsRegistryContent');
-  el.innerHTML = funcRegistry.map(f => `
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <strong style="font-size:15px">${f.icon || ''} ${esc(f.label)}</strong>
-          <div style="color:var(--text-dim);font-size:13px;margin-top:2px">${esc(f.description)}</div>
-        </div>
-      </div>
-      ${f.commands.length ? `
-        <div style="margin-top:12px">
-          <div style="font-size:12px;color:var(--text-dim);margin-bottom:4px">Commands</div>
-          <div class="cmd-list">
-            ${f.commands.map(c => `
-              <div class="cmd-item">
-                <span class="cmd-name">${esc(c.name)}</span>
-                <span class="cmd-desc">&mdash; ${esc(c.description)}</span>
-                <span class="cmd-perm">${c.permission}</span>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      ` : '<div style="margin-top:8px;color:var(--text-dim);font-size:12px">No commands</div>'}
-    </div>
-  `).join('') || '<div class="empty-state"><h3>No functions installed</h3><p style="color:var(--text-dim)">Add function modules to the functions/ directory</p></div>';
-  showPage('funcsRegistry');
-}
-
-function showFuncDetail(name) {
-  const f = funcRegistry.find(r => r.name === name);
-  if (!f) return;
-  const el = document.getElementById('funcsRegistryContent');
+// ── Bot Detail ────────────────────────────────────────────────────────────
+async function openBotDetail(id) {
+  showPage('botDetail');
+  const bot = await api('/api/bots/' + id);
+  const funcConfig = bot.functions || {};
+  const funcReg = functionsRegistry;
+  const el = document.getElementById('botDetailContent');
   el.innerHTML = `
     <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <strong style="font-size:15px">${f.icon || ''} ${esc(f.label)}</strong>
-          <div style="color:var(--text-dim);font-size:13px;margin-top:2px">${esc(f.description)}</div>
-        </div>
+      <div class="card-title" style="margin-bottom:16px">${esc(bot.name)}</div>
+      <div class="form-group">
+        <label>Bot Token</label>
+        <input id="detailToken" type="password" value="${esc(bot.token)}" placeholder="MTI...">
       </div>
-      ${f.commands.length ? `
-        <div style="margin-top:16px">
-          <div style="font-size:12px;color:var(--text-dim);margin-bottom:6px">Commands</div>
-          <div class="cmd-list">
-            ${f.commands.map(c => `
-              <div class="cmd-item">
-                <span class="cmd-name">${esc(c.name)}</span>
-                <span class="cmd-desc">&mdash; ${esc(c.description)}</span>
-                <span class="cmd-perm">${c.permission}</span>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
-      ${f.configFields.length ? `
-        <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px">
-          <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px">Configuration Fields</div>
-          ${f.configFields.map(cf => `
-            <div style="font-size:12px;padding:4px 0"><code style="color:var(--accent)">${esc(cf.key)}</code> <span style="color:var(--text-dim)">&mdash; ${esc(cf.label)} (${cf.type})</span></div>
-          `).join('')}
-        </div>
-      ` : ''}
-      <div style="margin-top:16px">
-        <div style="font-size:12px;color:var(--text-dim);margin-bottom:6px">Deployed to:</div>
-        ${bots.filter(b => (b.activeFunctions || []).includes(f.name) || (b.allFunctions || []).includes(f.name)).map(b => `
-          <span class="badge ${(b.activeFunctions || []).includes(f.name) ? 'badge-green' : 'badge-dim'}" style="margin-right:4px">${esc(b.name)}</span>
-        `).join('') || '<span style="font-size:12px;color:var(--text-dim)">No bots</span>'}
+      <div class="form-group">
+        <label>Client ID</label>
+        <input id="detailClientId" value="${esc(bot.clientId)}" placeholder="123456789012345678">
       </div>
+      <button class="btn btn-primary" onclick="saveBotDetail('${id}')">Save</button>
     </div>
-  `;
-  setActiveNav('');
-  showPage('funcsRegistry');
-}
-
-// ── Functions Deploy ───────────────────────────────────
-async function showFunctionsDeploy() {
-  setActiveNav('');
-  await loadBots();
-  funcRegistry = await API.get('/api/functions');
-  const tbody = document.getElementById('deployTableBody');
-  if (!funcRegistry.length) {
-    tbody.innerHTML = '';
-    document.getElementById('deployEmpty').style.display = 'block';
-    return;
-  }
-  document.getElementById('deployEmpty').style.display = 'none';
-  tbody.innerHTML = funcRegistry.map(f => {
-    const deployed = bots.filter(b => (b.allFunctions || []).includes(f.name));
-    return `<tr>
-      <td><strong>${f.icon || ''} ${esc(f.label)}</strong></td>
-      <td style="color:var(--text-dim);font-size:12px">${esc(f.description)}</td>
-      <td>
-        ${deployed.length ? deployed.map(b => {
-          const active = (b.activeFunctions || []).includes(f.name);
-          return `<span class="badge ${active ? 'badge-green' : 'badge-dim'}" style="margin-right:4px;cursor:pointer" onclick="toggleFunc('${b.id}','${f.name}',${!active})">${esc(b.name)} ${active ? '&#x2713;' : '&#x2717;'}</span>`;
-        }).join('') : '<span style="font-size:12px;color:var(--text-dim)">Not deployed</span>'}
-      </td>
-      <td>
-        ${deployed.length ? deployed.map(b => `<button class="btn btn-sm btn-secondary" onclick="showBotFunctions('${b.id}')">Configure</button>`).join(' ') : ''}
-      </td>
-    </tr>`;
-  }).join('');
-  showPage('funcsDeploy');
-}
-
-// ── Bot Functions Config (per-bot) ─────────────────────
-async function showBotFunctions(id) {
-  const bot = bots.find(b => b.id === id);
-  selectedBot = id;
-  document.getElementById('functionsTitle').textContent = `${bot?.name || ''} — Functions`;
-  const content = document.getElementById('functionsContent');
-  funcRegistry = await API.get('/api/functions');
-
-  let html = '';
-  for (const f of funcRegistry) {
-    const cfg = await API.get(`/api/bots/${id}/functions/${f.name}`);
-    const enabled = cfg?.enabled || false;
-
-    html += `<div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div><strong>${f.icon || ''} ${esc(f.label)}</strong><br><span style="color:var(--text-dim);font-size:12px">${esc(f.description)}</span></div>
-        <div class="toggle ${enabled ? 'on' : ''}" onclick="toggleFunc('${id}','${f.name}',${!enabled})"></div>
-      </div>
-      ${enabled ? `
-        <div style="margin-bottom:12px">
-          <div class="form-group">
-            <label>Command Prefix (per-function override)</label>
-            <div style="display:flex;gap:8px;align-items:center">
-              <input type="text" id="funcPrefix_${f.name}" value="${esc(cfg?.commandPrefix || '')}" maxlength="3" style="width:60px;text-align:center;font-size:18px;font-family:monospace" placeholder="global" oninput="this.value=this.value.replace(/[a-zA-Z0-9]/g,'')">
-            </div>
-            <div class="form-hint">Leave empty to use global prefix</div>
-          </div>
+    ${funcReg.map(fn => {
+      const cfg = funcConfig[fn.name] || {};
+      return `
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">${fn.icon || '⚡'} ${fn.label}</div>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+            <input type="checkbox" ${cfg.enabled ? 'checked' : ''} onchange="toggleFunc('${id}','${fn.name}',this.checked)">
+            <span style="font-size:12px;color:var(--text2)">${cfg.enabled ? 'Enabled' : 'Disabled'}</span>
+          </label>
         </div>
-        ${f.configFields.length ? `
-          <div>
-            ${f.configFields.map(cf => `
-              <div class="form-group">
-                <label>${esc(cf.label)}</label>
-                <input type="${cf.type === 'number' ? 'number' : 'text'}" id="funcCfg_${f.name}_${cf.key}" value="${esc(cfg?.[cf.key] || '')}">
-                <div class="form-hint">${esc(cf.hint || '')}</div>
-              </div>
-            `).join('')}
+        <div class="form-group">
+          <label>Command Prefix (overrides global)</label>
+          <input id="funcPrefix_${fn.name}" value="${esc(cfg.commandPrefix || '')}" placeholder="! or ${esc(cfg.commandPrefix || '!')}"
+                 oninput="this.value=this.value.replace(/[a-zA-Z0-9]/g,'')">
+        </div>
+        ${fn.configFields.map(f => `
+          <div class="form-group">
+            <label>${f.label}</label>
+            ${f.type === 'textarea'
+              ? `<textarea id="func_${fn.name}_${f.key}" rows="3" placeholder="${esc(f.placeholder || '')}">${esc(cfg[f.key] || (Array.isArray(f.default) ? f.default.join('\n') : f.default || ''))}</textarea>`
+              : f.type === 'number'
+                ? `<input id="func_${fn.name}_${f.key}" type="number" value="${esc(cfg[f.key] || f.default || '')}" placeholder="${esc(f.placeholder || '')}">`
+                : `<input id="func_${fn.name}_${f.key}" value="${esc(cfg[f.key] || f.default || '')}" placeholder="${esc(f.placeholder || '')}">`
+            }
           </div>
-        ` : ''}
-        ${f.name === 'updates' ? `
-          <div style="margin-top:12px">
-            <div style="font-size:12px;color:var(--text-dim);margin-bottom:4px">Sources</div>
-            <div class="source-list" id="sourceList">
-              ${(cfg?.sources || []).map((s, i) => `<div class="source-item"><span class="label">${esc(s.label || '')}</span><span class="url">${esc(s.url)}</span><button class="btn btn-sm btn-danger" onclick="removeSource('${id}',${i})">Remove</button></div>`).join('') || '<div style="color:var(--text-dim);font-size:13px;padding:8px">No sources configured</div>'}
-            </div>
-            <div style="display:flex;gap:8px;margin-top:8px">
-              <input type="text" id="newSourceUrl" placeholder="/tiktok/user/username or full URL" style="flex:1;padding:8px;background:var(--input);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px">
-              <input type="text" id="newSourceLabel" placeholder="Label (optional)" style="width:120px;padding:8px;background:var(--input);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px">
-              <button class="btn btn-sm btn-primary" onclick="addSource('${id}')">Add</button>
-            </div>
-          </div>
-        ` : ''}
-        <div style="margin-top:12px"><button class="btn btn-primary" onclick="saveFuncConfig('${id}','${f.name}')">Save Config</button></div>
-      ` : `
-        <div style="color:var(--text-dim);font-size:12px;padding:8px 0">Enable this function to configure it.</div>
-      `}
-    </div>`;
-  }
-  content.innerHTML = html || '<div class="empty-state"><h3>No functions available</h3></div>';
-  showPage('functions');
+        `).join('')}
+        <button class="btn btn-primary btn-sm" onclick="saveFuncConfig('${id}','${fn.name}')">Save ${fn.label}</button>
+      </div>`;
+    }).join('')}
+  `;
+}
+
+async function saveBotDetail(id) {
+  try {
+    await api('/api/bots/' + id, { method: 'PUT', body: JSON.stringify({
+      token: document.getElementById('detailToken').value,
+      clientId: document.getElementById('detailClientId').value,
+    })});
+    toast('Saved', 'success');
+  } catch (e) { toast(e.message, 'error'); }
 }
 
 async function toggleFunc(botId, funcName, enabled) {
-  await API.put(`/api/bots/${botId}/functions/${funcName}`, { enabled });
-  toast(`${funcName} ${enabled ? 'enabled' : 'disabled'}`);
-  await loadBots();
-  if (currentPage === 'botList') renderBotTable();
-  else showBotFunctions(botId);
+  try {
+    await api('/api/bots/' + botId + '/functions/' + funcName, { method: 'PUT', body: JSON.stringify({ enabled }) });
+    toast(`${funcName} ${enabled ? 'enabled' : 'disabled'}`, 'success');
+  } catch (e) { toast(e.message, 'error'); }
 }
 
 async function saveFuncConfig(botId, funcName) {
-  const body = { enabled: true };
-  const prefixEl = document.getElementById(`funcPrefix_${funcName}`);
-  if (prefixEl) body.commandPrefix = prefixEl.value;
-  funcRegistry.forEach(f => {
-    if (f.name === funcName) {
-      f.configFields.forEach(cf => {
-        const el = document.getElementById(`funcCfg_${funcName}_${cf.key}`);
-        if (el) body[cf.key] = cf.type === 'number' ? (parseInt(el.value) || 0) : el.value;
-      });
+  const reg = functionsRegistry.find(f => f.name === funcName);
+  const config = {
+    commandPrefix: document.getElementById('funcPrefix_' + funcName).value,
+    enabled: true,
+  };
+  reg.configFields.forEach(f => {
+    const el = document.getElementById('func_' + funcName + '_' + f.key);
+    if (el) {
+      if (f.type === 'textarea') config[f.key] = el.value.split('\n').map(s => s.trim()).filter(Boolean);
+      else if (f.type === 'number') config[f.key] = parseInt(el.value) || f.default || 0;
+      else config[f.key] = el.value;
     }
   });
-  await API.put(`/api/bots/${botId}/functions/${funcName}`, body);
-  toast(`${funcName} config saved`);
+  try {
+    await api('/api/bots/' + botId + '/functions/' + funcName, { method: 'PUT', body: JSON.stringify(config) });
+    toast(`${funcName} config saved`, 'success');
+  } catch (e) { toast(e.message, 'error'); }
 }
 
-async function addSource(botId) {
-  const url = document.getElementById('newSourceUrl').value.trim();
-  const label = document.getElementById('newSourceLabel').value.trim();
-  if (!url) return;
-  const config = await API.get(`/api/bots/${botId}/functions/updates`);
-  const sources = config?.sources || [];
-  sources.push({ url, label: label || url, platform: 'auto' });
-  await API.put(`/api/bots/${botId}/functions/updates`, { sources });
-  document.getElementById('newSourceUrl').value = '';
-  document.getElementById('newSourceLabel').value = '';
-  showBotFunctions(botId);
+// ── Functions Registry ────────────────────────────────────────────────────
+function renderFunctions() {
+  const el = document.getElementById('functionsRegistry');
+  el.innerHTML = functionsRegistry.map(fn => `
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-header">
+        <div class="card-title">${fn.icon || '⚡'} ${fn.label}</div>
+      </div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:10px">${esc(fn.description || '')}</p>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:4px">Commands:</div>
+      <div class="commands-grid">
+        ${(fn.commands || []).map(c => `
+          <div class="cmd-tag">
+            <span class="perm">${esc(c.permission || 'user')}</span>
+            <span class="prefix-tag">${esc(c.prefix || '!')}</span>${esc(c.name)}
+            <span style="color:var(--text2)">${esc(c.description || '')}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
 }
 
-async function removeSource(botId, idx) {
-  const config = await API.get(`/api/bots/${botId}/functions/updates`);
-  const sources = config?.sources || [];
-  sources.splice(idx, 1);
-  await API.put(`/api/bots/${botId}/functions/updates`, { sources });
-  showBotFunctions(botId);
-}
-
-// ── Bot Settings ───────────────────────────────────────
-function showBotSettings(id) {
-  const bot = bots.find(b => b.id === id);
-  if (!bot) return;
-  selectedBot = id;
-  document.getElementById('settingName').value = bot.name;
-  document.getElementById('settingToken').value = '';
-  showPage('botSettings');
-}
-
-async function saveBotSettings() {
-  if (!selectedBot) return;
-  const body = { name: document.getElementById('settingName').value };
-  const token = document.getElementById('settingToken').value;
-  if (token) body.token = token;
-  await API.put(`/api/bots/${selectedBot}`, body);
-  toast('Settings saved');
-  await loadBots();
-}
-
-// ── Global Settings ────────────────────────────────────
-async function showGlobalSettings() {
-  setActiveNav('nav-settings');
-  const settings = await API.get('/api/settings');
-  document.getElementById('globalPrefix').value = settings.commandPrefix || '!';
-  showPage('globalSettings');
-}
-
-async function saveGlobalPw() {
-  const newPw = document.getElementById('globalPw').value;
-  if (!newPw) return;
-  await API.post('/api/auth/password', { password: newPw });
-  pw = newPw;
-  toast('Password updated');
-  document.getElementById('globalPw').value = '';
-}
-
-async function saveGlobalPrefix() {
-  const val = document.getElementById('globalPrefix').value;
-  if (val && /[a-zA-Z0-9]/.test(val)) { toast('Prefix must be punctuation/special characters only', 'error'); return; }
-  await API.put('/api/settings', { commandPrefix: val || '!' });
-  toast('Prefix updated');
-}
-
-async function promptResetAll() {
-  openDeleteModal('reset', '', '', 'This will delete ALL bots, functions, and settings.');
-}
-
-// ── Delete Modal ───────────────────────────────────────
-function openDeleteModal(type, id, name, desc) {
-  deleteState = { id, name, type };
-  document.getElementById('deleteModalTitle').textContent = type === 'bot' ? `Delete bot "${name}"?` : 'Reset Everything?';
-  document.getElementById('deleteModalDesc').textContent = desc || 'This action cannot be undone.';
-  document.getElementById('deleteModalLabel').textContent = type === 'bot' ? `Type "${name}" to confirm:` : 'Type "RESET" to confirm:';
-  document.getElementById('deleteModalInput').value = '';
-  document.getElementById('deleteModalInput').placeholder = type === 'bot' ? name : 'RESET';
-  document.getElementById('deleteModalError').textContent = '';
-  document.getElementById('deleteModalBtn').disabled = true;
-  document.getElementById('deleteModal').classList.add('open');
-  document.getElementById('deleteModalInput').focus();
-}
-
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
-
-function checkDeleteConfirm() {
-  const input = document.getElementById('deleteModalInput').value;
-  const expected = deleteState.type === 'bot' ? deleteState.name : 'RESET';
-  const match = input === expected;
-  document.getElementById('deleteModalBtn').disabled = !match;
-  document.getElementById('deleteModalError').textContent = match ? '' : `Type exactly: ${expected}`;
-}
-
-async function confirmDelete() {
-  if (deleteState.type === 'bot') {
-    await API.del(`/api/bots/${deleteState.id}`);
-    toast('Bot deleted');
-    selectedBot = null;
-    await loadBots();
-    showBotList();
-  } else if (deleteState.type === 'reset') {
-    const botsCopy = [...bots];
-    for (const b of botsCopy) await API.del(`/api/bots/${b.id}`);
-    await API.post('/api/auth/password', { password: '' });
-    pw = '';
-    toast('Everything reset');
-    await init();
+// ── Deploy Functions ──────────────────────────────────────────────────────
+function renderDeploy() {
+  if (bots.length === 0) {
+    document.getElementById('deployTable').innerHTML = '<div class="empty">No bots configured yet.</div>';
+    return;
   }
-  closeModal('deleteModal');
+  const rows = bots.map(b => {
+    return (b.allFunctions || []).map(fn => {
+      const active = (b.activeFunctions || []).includes(fn);
+      return `<tr>
+        <td>${esc(b.name)}</td>
+        <td>${esc(fn)}</td>
+        <td><span class="badge badge-${active ? 'running' : 'stopped'}">${active ? 'Active' : 'Inactive'}</span></td>
+        <td>
+          <button class="btn btn-outline btn-sm" onclick="openBotDetail('${b.id}')">Configure</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }).join('');
+  document.getElementById('deployTable').innerHTML = `
+    <table>
+      <thead><tr><th>Bot</th><th>Function</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
 }
 
-function promptDeleteBot(id) {
-  const bot = bots.find(b => b.id === id);
-  if (!bot) return;
-  openDeleteModal('bot', id, bot.name);
+// ── Users ─────────────────────────────────────────────────────────────────
+async function renderUsers() {
+  try {
+    const users = await api('/api/users');
+    document.getElementById('userTableBody').innerHTML = users.map(u => `
+      <tr>
+        <td>${esc(u.username)}</td>
+        <td><span class="badge badge-${u.role}">${u.role}</span></td>
+        <td style="display:flex;gap:6px">
+          <button class="btn btn-outline btn-sm" onclick="editUser('${u.id}','${esc(u.username)}','${u.role}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}','${esc(u.username)}')">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch {}
 }
 
-// ── SSE ────────────────────────────────────────────────
+function showAddUserModal() { document.getElementById('addUserModal').classList.add('show'); }
+function showAddBotModal() { document.getElementById('addBotModal').classList.add('show'); }
+
+async function submitAddUser() {
+  try {
+    await api('/api/users', { method: 'POST', body: JSON.stringify({
+      username: document.getElementById('addUserName').value,
+      password: document.getElementById('addUserPass').value,
+      role: document.getElementById('addUserRole').value,
+    })});
+    closeModal('addUserModal');
+    renderUsers();
+    toast('User created', 'success');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function editUser(id, username, role) {
+  document.getElementById('editUserId').value = id;
+  document.getElementById('editUserName').value = username;
+  document.getElementById('editUserRole').value = role;
+  document.getElementById('editUserPass').value = '';
+  document.getElementById('editUserModal').classList.add('show');
+}
+
+async function submitEditUser() {
+  const id = document.getElementById('editUserId').value;
+  const body = {
+    username: document.getElementById('editUserName').value,
+    role: document.getElementById('editUserRole').value,
+  };
+  const pw = document.getElementById('editUserPass').value;
+  if (pw) body.password = pw;
+  try {
+    await api('/api/users/' + id, { method: 'PUT', body: JSON.stringify(body) });
+    closeModal('editUserModal');
+    renderUsers();
+    toast('User updated', 'success');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function deleteUser(id, username) {
+  if (!confirm(`Delete user "${username}"?`)) return;
+  try {
+    await api('/api/users/' + id, { method: 'DELETE' });
+    renderUsers();
+    toast('User deleted', 'success');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ── Bot CRUD ──────────────────────────────────────────────────────────────
+async function submitAddBot() {
+  const name = document.getElementById('addBotName').value;
+  const token = document.getElementById('addBotToken').value;
+  const clientId = document.getElementById('addBotClientId').value;
+  if (!name) return toast('Name required', 'error');
+  let avatarUrl = null;
+  if (token) {
+    document.getElementById('addBotCheck').style.display = 'block';
+    document.getElementById('addBotCheck').textContent = 'Validating token...';
+    document.getElementById('addBotCheck').style.color = 'var(--text2)';
+    try {
+      const v = await api('/api/validate-token', { method: 'POST', body: JSON.stringify({ token }) });
+      if (v.valid) {
+        document.getElementById('addBotCheck').textContent = '✓ Valid — ' + v.bot.username;
+        document.getElementById('addBotCheck').style.color = 'var(--green)';
+        avatarUrl = v.bot.avatarUrl;
+      } else {
+        document.getElementById('addBotCheck').textContent = '✗ ' + v.error;
+        document.getElementById('addBotCheck').style.color = 'var(--red)';
+        return;
+      }
+    } catch (e) {
+      document.getElementById('addBotCheck').textContent = '✗ Validation failed';
+      document.getElementById('addBotCheck').style.color = 'var(--red)';
+      return;
+    }
+  }
+  try {
+    const result = await api('/api/bots', { method: 'POST', body: JSON.stringify({ name, token, clientId, avatarUrl }) });
+    closeModal('addBotModal');
+    document.getElementById('addBotCheck').style.display = 'none';
+    await loadBots();
+    if (token) { try { await api('/api/bots/' + result.id + '/start', { method: 'POST' }); } catch {} }
+    toast('Bot created', 'success');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function confirmDeleteBot(id, name) {
+  deleteBotTarget = { id, name };
+  document.getElementById('deleteBotConfirm').value = '';
+  document.getElementById('deleteBotBtn').disabled = true;
+  document.getElementById('deleteBotModal').classList.add('show');
+}
+
+function checkDeleteBot() {
+  const val = document.getElementById('deleteBotConfirm').value;
+  document.getElementById('deleteBotBtn').disabled = val !== deleteBotTarget?.name;
+}
+
+async function submitDeleteBot() {
+  try {
+    await api('/api/bots/' + deleteBotTarget.id, { method: 'DELETE' });
+    closeModal('deleteBotModal');
+    await loadBots();
+    toast('Bot deleted', 'success');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function startBot(id) {
+  try {
+    await api('/api/bots/' + id + '/start', { method: 'POST' });
+    await loadBots();
+    toast('Bot started', 'success');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function stopBot(id) {
+  try {
+    await api('/api/bots/' + id + '/stop', { method: 'POST' });
+    await loadBots();
+    toast('Bot stopped', 'success');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ── Global Settings ───────────────────────────────────────────────────────
+async function loadSettings() {
+  try {
+    const s = await api('/api/settings');
+    document.getElementById('globalPrefix').value = s.commandPrefix || '!';
+  } catch {}
+}
+
+async function saveGlobalSettings() {
+  try {
+    await api('/api/settings', { method: 'PUT', body: JSON.stringify({
+      commandPrefix: document.getElementById('globalPrefix').value,
+    })});
+    toast('Settings saved', 'success');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// ── SSE ───────────────────────────────────────────────────────────────────
 function connectSSE() {
-  const es = new EventSource('/api/events');
+  const es = new EventSource(SSE_URL);
   es.addEventListener('bot:status', (e) => {
-    const data = JSON.parse(e.data);
-    const bot = bots.find(b => b.id === data.id);
-    if (bot) { bot.status = data.status; bot.error = data.error; }
-    if (currentPage === 'botList') renderBotTable();
-    else if (currentPage === 'overview' && selectedBot === data.id) showBotOverview(data.id);
-    renderSidebar();
+    const d = JSON.parse(e.data);
+    const b = bots.find(x => x.id === d.id);
+    if (b) { b.status = d.status; renderSidebarBots(); renderBotTable(); }
   });
   es.addEventListener('bot:log', (e) => {
-    const data = JSON.parse(e.data);
-    if (data.id === selectedBot) {
-      const log = document.getElementById('errorLog');
-      if (log) {
-        const empty = log.querySelector('.empty-state');
-        if (empty) empty.remove();
-        log.insertAdjacentHTML('afterbegin', `<div class="entry"><span class="time">${new Date(data.timestamp).toLocaleTimeString()}</span> ${esc(data.message)}</div>`);
-      }
-    }
+    const d = JSON.parse(e.data);
+    if (d.level === 'error') toast(d.message, 'error');
   });
+  es.onerror = () => { setTimeout(connectSSE, 3000); es.close(); };
 }
 
-// ── Init ───────────────────────────────────────────────
-init();
-connectSSE();
+// ── Helpers ───────────────────────────────────────────────────────────────
+function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+// ── Load Data ─────────────────────────────────────────────────────────────
+async function loadBots() {
+  bots = await api('/api/bots');
+  renderSidebarBots();
+  renderBotTable();
+  renderDeploy();
+}
+
+async function init() {
+  try {
+    functionsRegistry = await api('/api/functions');
+  } catch { functionsRegistry = []; }
+  await loadBots();
+  await loadSettings();
+  await renderUsers();
+  renderFunctions();
+  renderDeploy();
+  connectSSE();
+  showPage('botManagement');
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────
+(async () => {
+  const savedTheme = localStorage.getItem('starrbot-theme') || 'dark';
+  setTheme(savedTheme);
+  await checkAuth();
+  if (currentUser) init();
+})();
 </script>
 </body>
 </html>
