@@ -51,33 +51,23 @@ echo "paste_your_github_pat_here" | sudo docker login ghcr.io -u YOUR_GITHUB_USE
 sudo bash setup.sh
 ```
 
-The script asks for your Discord Bot Token and Client ID, then creates `.env`.
-
-Then start the stack:
+The script asks for your Discord Bot Token, Client ID, and a dashboard password. Then start the stack:
 
 ```bash
 sudo docker compose up -d
 ```
 
-## Step 3: Configure the Bot via Discord
+## Step 3: Open the Dashboard
 
-Once the bot is running, go to your Discord server and type:
+Open `http://YOUR_SERVER_IP:3000` in your browser. Log in with the password you set during setup.
 
-```
-!setup
-```
+The dashboard lets you:
+- **Stats** — see feeds, posts sent, errors, uptime
+- **Feeds** — add/remove monitored feeds
+- **Setup** — guided wizard with instructions for each config value
+- **Config** — edit any setting manually
 
-The bot will walk you through each config value with instructions on how to get it:
-
-1. **Feed Channel** — the channel where social media posts appear (right-click → Copy Channel ID)
-2. **Admin Channel** — the channel for support tickets (right-click → Copy Channel ID)
-3. **Admin Role** — who can manage feeds (right-click → Copy Role ID, or `skip` for everyone)
-4. **Instagram Username** — the username to monitor
-5. **Instagram Password** — the password (2FA must be off, use a burner account)
-6. **YouTube API Key** — how to get it is explained in the wizard
-7. **RSSHub URL** — `skip` to use the default if RSSHub is on the same server
-
-Type `!cancel` at any time to stop. All values are stored locally on the server.
+No Discord commands needed. Everything is in the web UI.
 
 ## Step 4: Expose RSSHub to the Internet
 
@@ -148,14 +138,14 @@ Watchtower is included in the stack. It polls GHCR every 5 minutes and auto-rest
 
 ## All Commands
 
+Discord commands still work but the dashboard (`http://YOUR_SERVER_IP:3000`) is easier for config and feed management.
+
 | Command | Who Can Use It | What It Does |
 |---------|---------------|--------------|
-| `!setup` | Admins only | First-time config wizard |
-| `!config show` | Admins only | Shows current config |
-| `!config set <KEY> <value>` | Admins only | Sets a config value |
 | `!help` | Everyone | Shows all commands |
 | `!ping` | Everyone | Checks if bot is alive |
 | `!feeds` | Everyone | Lists all monitored feeds |
+| `!stats` | Everyone | Shows bot statistics |
 | `!ticket <message>` | Everyone | Creates a support ticket |
 | `!ticketinfo` | Anyone in ticket | Shows ticket details |
 | `!close` | Admins in ticket | Closes a ticket |
@@ -163,11 +153,13 @@ Watchtower is included in the stack. It polls GHCR every 5 minutes and auto-rest
 | `!assign @user` | Admins in ticket | Assigns ticket to admin |
 | `!addfeed <url>` | Admins only | Adds a new feed |
 | `!removefeed <#>` | Admins only | Removes feed by number |
-| `!stats` | Everyone | Shows bot statistics |
+| `!config show` | Admins only | Shows current config |
+| `!config set <KEY> <value>` | Admins only | Sets a config value |
+| `!setup` | Admins only | First-time config wizard |
 
 ## Config Keys
 
-These can be set with `!config set`:
+Set these in the dashboard under **Setup** or **Config**:
 
 | Key | What It Does |
 |-----|-------------|
@@ -181,6 +173,11 @@ These can be set with `!config set`:
 | `CHECK_INTERVAL` | Minutes between checks (default: 15) |
 
 ## Troubleshooting
+
+**Dashboard not loading:**
+- Check the bot container is running in Dockhand
+- Make sure port 3000 is open on your server firewall
+- Try `http://YOUR_SERVER_IP:3000` (not HTTPS)
 
 **Bot doesn't respond:**
 - In Dockhand: find the `mkitty-bot` container → click **Logs**

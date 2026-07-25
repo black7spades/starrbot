@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mkitty Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#1a1a2e;--card:#16213e;--accent:#5865f2;--green:#57f287;--red:#ed4245;--yellow:#fee75c;--text:#dcddde;--muted:#72767d;--input:#2f3136;--border:#202225}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a{color:var(--accent);text-decoration:none}
+.container{max-width:900px;margin:0 auto;padding:20px}
+h1{font-size:1.5rem;margin-bottom:20px}
+h2{font-size:1.1rem;margin-bottom:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+
+/* Login */
+#login{display:flex;align-items:center;justify-content:center;min-height:100vh}
+.login-box{background:var(--card);padding:40px;border-radius:12px;text-align:center;width:360px}
+.login-box input{width:100%;padding:12px;border:1px solid var(--border);border-radius:6px;background:var(--input);color:var(--text);font-size:1rem;margin:12px 0}
+.login-box h1{margin-bottom:4px}
+
+/* Dashboard */
+#dashboard{display:none}
+.nav{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.nav button{padding:8px 16px;border:none;border-radius:6px;background:var(--card);color:var(--muted);cursor:pointer;font-size:.9rem}
+.nav button.active{background:var(--accent);color:#fff}
+.section{display:none}
+.section.active{display:block}
+
+/* Cards */
+.card{background:var(--card);border-radius:10px;padding:20px;margin-bottom:16px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.stat{text-align:center;padding:16px;background:var(--bg);border-radius:8px}
+.stat .num{font-size:1.8rem;font-weight:700;color:var(--accent)}
+.stat .label{font-size:.8rem;color:var(--muted);margin-top:4px}
+
+/* Forms */
+.form-row{display:flex;gap:8px;margin-bottom:12px}
+.form-row input,.form-row select{flex:1;padding:10px;border:1px solid var(--border);border-radius:6px;background:var(--input);color:var(--text);font-size:.95rem}
+.btn{padding:10px 20px;border:none;border-radius:6px;cursor:pointer;font-size:.95rem;font-weight:600}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-danger{background:var(--red);color:#fff}
+.btn-sm{padding:6px 12px;font-size:.8rem}
+.btn:hover{opacity:.85}
+
+/* Feed list */
+.feed-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg);border-radius:8px;margin-bottom:8px}
+.feed-item .platform{font-size:1.2rem;width:32px;text-align:center}
+.feed-item .url{flex:1;font-size:.9rem;word-break:break-all}
+.feed-item .url small{color:var(--muted)}
+
+/* Config */
+.config-grid{display:grid;gap:12px}
+.config-row{display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg);border-radius:8px}
+.config-row label{min-width:160px;font-weight:600;font-size:.9rem}
+.config-row input{flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--input);color:var(--text);font-size:.9rem}
+.config-row .hint{font-size:.75rem;color:var(--muted);margin-top:4px}
+
+/* Setup wizard */
+.setup-steps{counter-reset:step}
+.setup-step{padding:16px;background:var(--bg);border-radius:8px;margin-bottom:12px;border-left:3px solid var(--border)}
+.setup-step.done{border-left-color:var(--green)}
+.setup-step.current{border-left-color:var(--accent)}
+.setup-step .step-num{font-size:.75rem;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+.setup-step .step-title{font-weight:600;margin-bottom:4px}
+.setup-step .step-desc{font-size:.85rem;color:var(--muted);margin-bottom:8px}
+.setup-step input{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--input);color:var(--text);font-size:.9rem}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;right:20px;padding:12px 20px;border-radius:8px;color:#fff;font-size:.9rem;z-index:999;animation:fadeIn .3s}
+.toast.success{background:var(--green);color:#000}
+.toast.error{background:var(--red)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* Responsive */
+@media(max-width:600px){.config-row{flex-direction:column;align-items:stretch}.config-row label{min-width:0}}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="login">
+  <div class="login-box">
+    <h1>Mkitty</h1>
+    <p style="color:var(--muted);margin-bottom:16px">Dashboard</p>
+    <input type="password" id="password" placeholder="Admin password" autofocus>
+    <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Enter</button>
+    <p id="login-error" style="color:var(--red);margin-top:8px;font-size:.85rem"></p>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard" class="container">
+  <h1>Mkitty Dashboard</h1>
+  <div class="nav">
+    <button class="active" onclick="showTab('stats')">Stats</button>
+    <button onclick="showTab('feeds')">Feeds</button>
+    <button onclick="showTab('setup')">Setup</button>
+    <button onclick="showTab('config')">Config</button>
+  </div>
+
+  <!-- Stats -->
+  <div id="tab-stats" class="section active">
+    <div class="stats" id="stats-grid"></div>
+  </div>
+
+  <!-- Feeds -->
+  <div id="tab-feeds" class="section">
+    <div class="card">
+      <h2>Add Feed</h2>
+      <div class="form-row">
+        <input type="text" id="feed-url" placeholder="/tiktok/user/username or full URL">
+        <button class="btn btn-primary" onclick="addFeed()">Add</button>
+      </div>
+      <p style="font-size:.8rem;color:var(--muted)">Prefix with / to auto-add your RSSHub URL. Examples: /tiktok/user/name, /instagram/user/name, /twitch/live/name</p>
+    </div>
+    <div class="card">
+      <h2>Monitored Feeds</h2>
+      <div id="feed-list"></div>
+    </div>
+  </div>
+
+  <!-- Setup Wizard -->
+  <div id="tab-setup" class="section">
+    <div class="card">
+      <h2>Setup Wizard</h2>
+      <p style="font-size:.9rem;color:var(--muted);margin-bottom:16px">Fill in each value. Leave blank and click Skip to skip optional fields. RSSHub restarts automatically when done.</p>
+      <div id="setup-steps"></div>
+      <div style="margin-top:16px;display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="runSetup()">Save All & Restart RSSHub</button>
+        <button class="btn" style="background:var(--border);color:var(--text)" onclick="showTab('config')">Skip to Manual Config</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Config -->
+  <div id="tab-config" class="section">
+    <div class="card">
+      <h2>Configuration</h2>
+      <div class="config-grid" id="config-grid"></div>
+      <div style="margin-top:16px;display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="saveConfig()">Save Config</button>
+        <button class="btn" style="background:var(--border);color:var(--text)" onclick="restartRsshub()">Restart RSSHub</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let pw = '';
+const SENSITIVE = ['IG_PASSWORD','DISCORD_TOKEN','YOUTUBE_KEY','ADMIN_PASSWORD'];
+const HINTS = {
+  DISCORD_CHANNEL_ID: 'Right-click channel in Discord → Copy Channel ID (enable Developer Mode in Settings → Advanced)',
+  ADMIN_CHANNEL_ID: 'Right-click admin-only channel → Copy Channel ID',
+  ADMIN_ROLE_ID: 'Right-click role in Server Settings → Copy Role ID. Leave empty = everyone is admin.',
+  IG_USERNAME: 'Instagram username to monitor (no @)',
+  IG_PASSWORD: 'Instagram password. 2FA must be OFF. Use a burner account.',
+  YOUTUBE_KEY: 'Google Cloud Console → APIs & Services → Library → Enable YouTube Data API v3 → Credentials → Create API Key',
+  RSSHUB_BASE_URL: 'Your RSSHub URL. Leave empty for default (http://rsshub:1200)',
+  CHECK_INTERVAL: 'Minutes between feed checks (default: 15)',
+};
+const SETUP_ORDER = ['DISCORD_CHANNEL_ID','ADMIN_CHANNEL_ID','ADMIN_ROLE_ID','IG_USERNAME','IG_PASSWORD','YOUTUBE_KEY','RSSHUB_BASE_URL'];
+
+async function api(url, method, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json', 'X-Admin-Password': pw } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(url, opts);
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || 'Request failed');
+  return data;
+}
+
+function toast(msg, type='success') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+function doLogin() {
+  pw = document.getElementById('password').value;
+  api('/api/stats', 'GET').then(() => {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadAll();
+  }).catch(e => {
+    document.getElementById('login-error').textContent = e.message || 'Wrong password';
+  });
+}
+document.getElementById('password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+function showTab(name) {
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelector(`.nav button[onclick*="${name}"]`).classList.add('active');
+  document.getElementById(`tab-${name}`).classList.add('active');
+  if (name === 'stats') loadStats();
+  if (name === 'feeds') loadFeeds();
+  if (name === 'config') loadConfig();
+  if (name === 'setup') loadSetup();
+}
+
+async function loadAll() { loadStats(); }
+
+async function loadStats() {
+  const s = await api('/api/stats', 'GET');
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat"><div class="num">${s.feeds}</div><div class="label">Feeds</div></div>
+    <div class="stat"><div class="num">${s.postsSent}</div><div class="label">Posts Sent</div></div>
+    <div class="stat"><div class="num">${s.errors}</div><div class="label">Errors</div></div>
+    <div class="stat"><div class="num">${s.lastCheck ? timeSince(s.lastCheck) : 'Never'}</div><div class="label">Last Check</div></div>
+    <div class="stat"><div class="num">${s.botUser}</div><div class="label">Bot</div></div>
+    <div class="stat"><div class="num">${Math.floor(s.uptime / 3600)}h ${Math.floor((s.uptime % 3600) / 60)}m</div><div class="label">Uptime</div></div>
+  `;
+}
+
+function timeSince(d) {
+  const s = Math.floor((Date.now() - new Date(d)) / 1000);
+  if (s < 60) return `${s}s ago`;
+  if (s < 3600) return `${Math.floor(s/60)}m ago`;
+  return `${Math.floor(s/3600)}h ago`;
+}
+
+async function loadFeeds() {
+  const feeds = await api('/api/feeds', 'GET');
+  const el = document.getElementById('feed-list');
+  if (!feeds.length) { el.innerHTML = '<p style="color:var(--muted)">No feeds yet. Add one above.</p>'; return; }
+  el.innerHTML = feeds.map(f => `
+    <div class="feed-item">
+      <div class="platform">${f.platform.icon}</div>
+      <div class="url">${f.url}<br><small>${f.platform.name}</small></div>
+      <button class="btn btn-danger btn-sm" onclick="removeFeed(${f.index})">Remove</button>
+    </div>
+  `).join('');
+}
+
+async function addFeed() {
+  const input = document.getElementById('feed-url');
+  const url = input.value.trim();
+  if (!url) return;
+  try {
+    await api('/api/feeds', 'POST', { url });
+    input.value = '';
+    toast('Feed added');
+    loadFeeds();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function removeFeed(idx) {
+  try {
+    await api(`/api/feeds/${idx}`, 'DELETE');
+    toast('Feed removed');
+    loadFeeds();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+let configData = {};
+async function loadConfig() {
+  configData = await api('/api/config', 'GET');
+  const grid = document.getElementById('config-grid');
+  const allKeys = [...new Set([...SETUP_ORDER, ...Object.keys(configData)])];
+  grid.innerHTML = allKeys.map(k => `
+    <div class="config-row">
+      <label>${k}</label>
+      <div>
+        <input type="${SENSITIVE.includes(k) ? 'password' : 'text'}" id="cfg-${k}" value="${configData[k] || ''}" placeholder="${k}">
+        ${HINTS[k] ? `<div class="hint">${HINTS[k]}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+async function saveConfig() {
+  const allKeys = [...new Set([...SETUP_ORDER, ...Object.keys(configData)])];
+  const body = {};
+  for (const k of allKeys) {
+    const v = document.getElementById(`cfg-${k}`).value;
+    if (v) body[k] = v;
+  }
+  try {
+    const r = await api('/api/config', 'POST', body);
+    toast(r.rsshubRestarted ? 'Saved. RSSHub restarted.' : 'Saved.');
+    loadConfig();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+function loadSetup() {
+  const el = document.getElementById('setup-steps');
+  el.innerHTML = SETUP_ORDER.map((k, i) => `
+    <div class="setup-step" id="step-${i}">
+      <div class="step-num">Step ${i + 1} of ${SETUP_ORDER.length}</div>
+      <div class="step-title">${k.replace(/_/g, ' ')}</div>
+      <div class="step-desc">${HINTS[k] || ''}</div>
+      <input type="${SENSITIVE.includes(k) ? 'password' : 'text'}" id="setup-${k}" placeholder="Enter value or leave blank to skip">
+    </div>
+  `).join('');
+}
+
+async function runSetup() {
+  const body = {};
+  for (const k of SETUP_ORDER) {
+    const v = document.getElementById(`setup-${k}`).value.trim();
+    if (v) body[k] = v;
+  }
+  try {
+    const r = await api('/api/config', 'POST', body);
+    document.querySelectorAll('.setup-step').forEach(s => s.classList.add('done'));
+    toast(r.rsshubRestarted ? 'Setup complete. RSSHub restarted.' : 'Setup complete.');
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function restartRsshub() {
+  try {
+    await api('/api/restart-rsshub', 'POST');
+    toast('RSSHub restarted');
+  } catch (e) { toast(e.message, 'error'); }
+}
+</script>
+</body>
+</html>

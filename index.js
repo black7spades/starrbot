@@ -1,6 +1,8 @@
 const { Client, GatewayIntentBits, EmbedBuilder, ChannelType } = require('discord.js');
 const Parser = require('rss-parser');
 const fs = require('fs');
+const http = require('http');
+const path = require('path');
 const { execSync } = require('child_process');
 const parser = new Parser();
 
@@ -436,5 +438,126 @@ client.on('messageCreate', async (msg) => {
     }
   }
 });
+
+// ── Web Dashboard ──────────────────────────────────────────────────────────
+const WEB_PORT = parseInt(process.env.WEB_PORT) || 3000;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
+
+function readBody(req) {
+  return new Promise((resolve) => {
+    let body = '';
+    req.on('data', (c) => body += c);
+    req.on('end', () => {
+      try { resolve(JSON.parse(body)); } catch { resolve(body); }
+    });
+  });
+}
+
+function json(res, code, data) {
+  res.writeHead(code, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(data));
+}
+
+function checkAuth(req, res) {
+  if (!ADMIN_PASSWORD) return true;
+  if (req.headers['x-admin-password'] === ADMIN_PASSWORD) return true;
+  json(res, 401, { error: 'Wrong password' });
+  return false;
+}
+
+function serveStatic(req, res) {
+  let filePath = req.url === '/' ? '/index.html' : req.url;
+  filePath = path.join(__dirname, 'public', filePath);
+  const ext = path.extname(filePath);
+  const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
+  try {
+    const data = fs.readFileSync(filePath);
+    res.writeHead(200, { 'Content-Type': types[ext] || 'text/plain' });
+    res.end(data);
+  } catch {
+    res.writeHead(404);
+    res.end('Not found');
+  }
+}
+
+const server = http.createServer(async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Password');
+  if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
+
+  // API routes
+  if (req.url === '/api/config' && req.method === 'GET') {
+    if (!checkAuth(req, res)) return;
+    const display = {};
+    for (const [k, v] of Object.entries(cfg)) {
+      display[k] = SENSITIVE_KEYS.includes(k) ? '***' : v;
+    }
+    return json(res, 200, display);
+  }
+
+  if (req.url === '/api/config' && req.method === 'POST') {
+    if (!checkAuth(req, res)) return;
+    const body = await readBody(req);
+    for (const [k, v] of Object.entries(body)) {
+      if (k === 'ADMIN_PASSWORD') continue;
+      cfg[k] = String(v);
+    }
+    saveConfig(cfg);
+    writeEnv(cfg);
+    const rsshubChanged = Object.keys(body).some((k) => RSSHUB_KEYS.includes(k));
+    let rsshubRestarted = null;
+    if (rsshubChanged) rsshubRestarted = restartRsshub();
+    return json(res, 200, { ok: true, rsshubRestarted });
+  }
+
+  if (req.url === '/api/feeds' && req.method === 'GET') {
+    if (!checkAuth(req, res)) return;
+    return json(res, 200, ALL_FEEDS.map((f, i) => ({ index: i, url: f, platform: getPlatformFromUrl(f) })));
+  }
+
+  if (req.url === '/api/feeds' && req.method === 'POST') {
+    if (!checkAuth(req, res)) return;
+    const body = await readBody(req);
+    let url = (body.url || '').trim();
+    if (url.startsWith('/')) url = (cfg.RSSHUB_BASE_URL || '') + url;
+    if (!url.startsWith('http')) return json(res, 400, { error: 'Invalid URL' });
+    if (ALL_FEEDS.includes(url)) return json(res, 400, { error: 'Feed already exists' });
+    ALL_FEEDS.push(url);
+    saveFeeds();
+    return json(res, 200, { ok: true, feeds: ALL_FEEDS });
+  }
+
+  if (req.url.startsWith('/api/feeds/') && req.method === 'DELETE') {
+    if (!checkAuth(req, res)) return;
+    const idx = parseInt(req.url.split('/').pop());
+    if (Number.isNaN(idx) || idx < 0 || idx >= ALL_FEEDS.length) return json(res, 400, { error: 'Invalid index' });
+    const removed = ALL_FEEDS.splice(idx, 1)[0];
+    saveFeeds();
+    return json(res, 200, { ok: true, removed, feeds: ALL_FEEDS });
+  }
+
+  if (req.url === '/api/stats' && req.method === 'GET') {
+    if (!checkAuth(req, res)) return;
+    return json(res, 200, {
+      feeds: ALL_FEEDS.length,
+      postsSent: stats.postsSent,
+      errors: stats.errors.length,
+      lastCheck: stats.lastCheck,
+      botUser: client.user?.tag || 'Not connected',
+      uptime: process.uptime(),
+    });
+  }
+
+  if (req.url === '/api/restart-rsshub' && req.method === 'POST') {
+    if (!checkAuth(req, res)) return;
+    const ok = restartRsshub();
+    return json(res, 200, { ok });
+  }
+
+  // Static files
+  serveStatic(req, res);
+});
+
+server.listen(WEB_PORT, () => console.log(`Dashboard: http://localhost:${WEB_PORT}`));
 
 client.login(process.env.DISCORD_TOKEN);
