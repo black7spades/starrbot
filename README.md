@@ -13,21 +13,13 @@ Multi-bot Discord management framework. Deploy and manage multiple Discord bots 
 ## Prerequisites
 
 - Ubuntu server with Docker (`sudo apt install docker.io docker-compose -y`)
-- GitHub account with access to this repo
 - Discord account with a bot application
 
 ## Deploy
 
 ```bash
-# SSH into your server
-cd /opt
-sudo git clone https://github.com/black7spades/starrbot.git
+git clone <your-repo-url>
 cd starrbot
-
-# Login to GHCR (needed once)
-echo "YOUR_GITHUB_PAT" | sudo docker login ghcr.io -u black7spades --password-stdin
-
-# Start
 sudo docker compose up -d
 ```
 
@@ -56,10 +48,6 @@ Commands work alongside the dashboard:
 | `!close` | Admin | Close a ticket |
 | `!priority <low\|medium\|high>` | Admin | Set ticket priority |
 | `!assign @user` | Admin | Assign ticket to admin |
-
-## RSSHub
-
-RSSHub runs separately. In the dashboard, set each bot's RSSHub URL under **Functions → Updates**.
 
 ## Architecture
 
