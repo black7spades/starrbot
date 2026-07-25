@@ -15,6 +15,12 @@ const SENSITIVE_KEYS = ['IG_PASSWORD', 'DISCORD_TOKEN', 'YOUTUBE_KEY', 'ADMIN_PA
 const RSSHUB_KEYS = ['IG_USERNAME', 'IG_PASSWORD', 'YOUTUBE_KEY', 'RSSHUB_BASE_URL'];
 const SETUP_ORDER = ['DISCORD_CHANNEL_ID', 'ADMIN_CHANNEL_ID', 'ADMIN_ROLE_ID', 'IG_USERNAME', 'IG_PASSWORD', 'YOUTUBE_KEY', 'RSSHUB_BASE_URL', 'CHECK_INTERVAL'];
 
+// ── Bootstrap: create data dir + empty files on first run ────────────────
+fs.mkdirSync(DATA_DIR, { recursive: true });
+if (!fs.existsSync(CONFIG_FILE)) fs.writeFileSync(CONFIG_FILE, '{}');
+if (!fs.existsSync(CONFIG_ENV)) fs.writeFileSync(CONFIG_ENV, '');
+if (!fs.existsSync(FEEDS_FILE)) fs.writeFileSync(FEEDS_FILE, '[]');
+
 // ── Config ────────────────────────────────────────────────────────────────
 function loadConfig() {
   try { return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8')); } catch { return {}; }
@@ -305,7 +311,7 @@ client.on('messageCreate', async (msg) => {
 });
 
 // ── Web Dashboard ─────────────────────────────────────────────────────────
-const WEB_PORT = parseInt(process.env.WEB_PORT) || 3000;
+const WEB_PORT = parseInt(process.env.WEB_PORT) || 2013;
 
 function readBody(req) {
   return new Promise((resolve) => {

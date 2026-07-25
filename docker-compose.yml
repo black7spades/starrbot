@@ -4,7 +4,7 @@ services:
     image: ghcr.io/black7spades/mkittybot:latest
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "2013:2013"
     volumes:
       - ./data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
