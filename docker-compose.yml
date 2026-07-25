@@ -16,7 +16,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.rsshub
-    image: ghcr.io/black7spades/rsshub-playwright:latest
+    image: mkitty-rsshub:latest
     restart: unless-stopped
     environment:
       - CACHE_TYPE=memory
