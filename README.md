@@ -104,20 +104,9 @@ To verify it's running:
 1. In Dockhand, find the `mkitty-bot-bot-1` container
 2. Click **Logs** — you should see: `Logged in as Mkitty#XXXX`
 
-### Pulling Updates via Dockhand
+### Auto-Updates
 
-When you push new code and want the latest image:
-
-**Step 1: Pull the latest image**
-- In Dockhand, look for **Images** or **Docker Images** section
-- Find `ghcr.io/YOUR_GITHUB_USER/YOUR_REPO`
-- Click **Pull** or **Refresh** — this downloads the latest image from GitHub
-- Or via SSH: `sudo docker pull ghcr.io/YOUR_GITHUB_USER/YOUR_REPO:latest`
-
-**Step 2: Restart the container**
-- In Dockhand, find your `mkitty-bot` stack
-- Click **Stop** then **Start** (or **Restart**)
-- The container now runs the latest image
+Watchtower is included in the stack. It polls GHCR every 5 minutes and auto-restarts the bot when a new image is pushed. Push code → GitHub Actions builds → Watchtower deploys. Zero manual steps.
 
 **Note:** The first time you deploy, Dockhand will build the RSSHub image locally (this takes a few minutes to install Patchright browsers). Subsequent starts use the cached image.
 
@@ -214,7 +203,7 @@ sudo docker compose -f /opt/YOUR_REPO/docker-compose.yml exec bot wget -q -O- ht
 ```
 Should return XML. If not, RSSHub can't reach the internet.
 
-**Restart after changes:**
+**Force restart (Watchtower handles most updates automatically):**
 - In Dockhand: find the container → click **Restart**
 - Or SSH: `sudo docker compose -f /opt/YOUR_REPO/docker-compose.yml restart`
 
