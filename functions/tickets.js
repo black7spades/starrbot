@@ -26,7 +26,7 @@ module.exports = {
 
     const isAdmin = (member) => !config.adminRoleId || member.roles.cache.has(config.adminRoleId);
 
-    client.on('messageCreate', async (msg) => {
+    const handler = async (msg) => {
       if (msg.author.bot) return;
 
       if (msg.content.startsWith(`${P}ticket `)) {
@@ -36,7 +36,7 @@ module.exports = {
         if (!adminChannel) return msg.reply('Admin channel not configured.');
         let thread;
         try { thread = await adminChannel.threads.create({ name: `ticket-${++managedBot._ticketCounter}`, reason: `Ticket from ${msg.author.tag}` }); }
-        catch { return msg.reply('Failed to create ticket. Bot needs Manage Threads permission.'); }
+        catch (err) { managedBot._log(`Ticket create failed: ${err.message}`); return msg.reply('Failed to create ticket. Bot needs Manage Threads permission.'); }
         await thread.send(`**Ticket #${managedBot._ticketCounter}** from <@${msg.author.id}>\n\n${message}`);
         try { await thread.members.add(msg.author.id); } catch {}
         tickets.set(thread.id, { submitterId: msg.author.id, ticketId: managedBot._ticketCounter, priority: 'medium', assignedTo: null });
@@ -85,11 +85,20 @@ module.exports = {
           catch { await msg.channel.send(`<@${ticket.submitterId}> ^ read above`); }
         }
       }
-    });
+    };
+
+    managedBot._ticketHandler = handler;
+    client.on('messageCreate', handler);
   },
 
   start() {},
-  stop() {},
+
+  stop(managedBot) {
+    if (managedBot.client && managedBot._ticketHandler) {
+      managedBot.client.removeListener('messageCreate', managedBot._ticketHandler);
+      managedBot._ticketHandler = null;
+    }
+  },
 
   getStats(managedBot) {
     return { active: managedBot._tickets?.size || 0, total: managedBot._ticketCounter || 0 };

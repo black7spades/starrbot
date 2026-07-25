@@ -288,7 +288,7 @@ a:hover{text-decoration:underline}
       <div class="form-group">
         <label>Global Prefix</label>
         <div style="display:flex;gap:8px;align-items:center">
-          <input type="text" id="globalPrefix" maxlength="3" style="width:60px;text-align:center;font-size:18px;font-family:monospace" placeholder="!">
+          <input type="text" id="globalPrefix" maxlength="3" style="width:60px;text-align:center;font-size:18px;font-family:monospace" placeholder="!" oninput="this.value=this.value.replace(/[a-zA-Z0-9]/g,'')">
           <span style="color:var(--text-dim);font-size:13px">Applied to all bots unless overridden per-function</span>
         </div>
         <div class="form-hint">Punctuation/special characters only (!, ?, #, ., /, etc)</div>
@@ -751,7 +751,7 @@ async function showBotFunctions(id) {
           <div class="form-group">
             <label>Command Prefix (per-function override)</label>
             <div style="display:flex;gap:8px;align-items:center">
-              <input type="text" id="funcPrefix_${f.name}" value="${esc(cfg?.commandPrefix || '')}" maxlength="3" style="width:60px;text-align:center;font-size:18px;font-family:monospace" placeholder="global">
+              <input type="text" id="funcPrefix_${f.name}" value="${esc(cfg?.commandPrefix || '')}" maxlength="3" style="width:60px;text-align:center;font-size:18px;font-family:monospace" placeholder="global" oninput="this.value=this.value.replace(/[a-zA-Z0-9]/g,'')">
             </div>
             <div class="form-hint">Leave empty to use global prefix</div>
           </div>
@@ -842,7 +842,7 @@ function showBotSettings(id) {
   selectedBot = id;
   document.getElementById('settingName').value = bot.name;
   document.getElementById('settingToken').value = '';
-  showPage('bot-settings');
+  showPage('botSettings');
 }
 
 async function saveBotSettings() {
@@ -860,7 +860,7 @@ async function showGlobalSettings() {
   setActiveNav('nav-settings');
   const settings = await API.get('/api/settings');
   document.getElementById('globalPrefix').value = settings.commandPrefix || '!';
-  showPage('global-settings');
+  showPage('globalSettings');
 }
 
 async function saveGlobalPw() {
@@ -874,7 +874,7 @@ async function saveGlobalPw() {
 
 async function saveGlobalPrefix() {
   const val = document.getElementById('globalPrefix').value;
-  if (!/^[^\w\d]+$/.test(val) && val.length > 0) { toast('Prefix must be punctuation/special characters only', 'error'); return; }
+  if (val && /[a-zA-Z0-9]/.test(val)) { toast('Prefix must be punctuation/special characters only', 'error'); return; }
   await API.put('/api/settings', { commandPrefix: val || '!' });
   toast('Prefix updated');
 }

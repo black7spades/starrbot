@@ -59,7 +59,7 @@ module.exports = {
 
   registerCommands(client, config, managedBot) {
     const P = config.commandPrefix || '!';
-    client.on('messageCreate', async (msg) => {
+    const handler = async (msg) => {
       if (msg.author.bot) return;
       const isAdmin = (member) => !config.adminRoleId || member.roles.cache.has(config.adminRoleId);
 
@@ -107,7 +107,10 @@ module.exports = {
       }
 
       if (msg.content === `${P}ping`) return msg.reply('Pong! \u{1F3D3}');
-    });
+    };
+
+    managedBot._updatesHandler = handler;
+    client.on('messageCreate', handler);
   },
 
   start(managedBot, config) {
@@ -123,6 +126,10 @@ module.exports = {
     if (managedBot._updatesInterval) {
       clearInterval(managedBot._updatesInterval);
       managedBot._updatesInterval = null;
+    }
+    if (managedBot.client && managedBot._updatesHandler) {
+      managedBot.client.removeListener('messageCreate', managedBot._updatesHandler);
+      managedBot._updatesHandler = null;
     }
   },
 
