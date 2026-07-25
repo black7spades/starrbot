@@ -3,12 +3,10 @@ services:
     container_name: mkitty-bot
     image: ghcr.io/black7spades/mkittybot:latest
     restart: unless-stopped
-    env_file: .env
     ports:
       - "3000:3000"
     volumes:
-      - ./feeds.json:/app/feeds.json
-      - ./.env:/app/.env
+      - ./data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - rsshub
@@ -20,7 +18,8 @@ services:
       dockerfile: Dockerfile.rsshub
     image: ghcr.io/black7spades/rsshub-playwright:latest
     restart: unless-stopped
-    env_file: .env
+    env_file:
+      - ./data/config.env
     environment:
       - CACHE_TYPE=memory
     ports:

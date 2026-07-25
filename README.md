@@ -33,47 +33,50 @@ Discord bot that monitors social media RSS feeds and posts updates to a channel.
 9. Copy the **Generated URL** at the bottom → paste it in your browser → select your server → Authorize
 10. Go back to the **General Information** page → copy the **Application ID** (this is your Client ID)
 
-## Step 2: Clone, Login to GHCR, and Deploy
+## Step 2: Clone and Deploy
 
 SSH into your server and run:
 
 ```bash
-# Clone the repo
 cd /opt
 sudo git clone https://github.com/YOUR_GITHUB_USER/YOUR_REPO.git
 cd YOUR_REPO
 
-# Login to GitHub Container Registry (so Docker can pull the bot image)
-# Create a classic PAT at https://github.com/settings/tokens with write:packages scope
+# Login to GitHub Container Registry
 echo "paste_your_github_pat_here" | sudo docker login ghcr.io -u YOUR_GITHUB_USER --password-stdin
 
-# Run the setup script (creates .env with your Discord token)
-sudo bash setup.sh
-```
-
-The script asks for your Discord Bot Token, Client ID, and a dashboard password. Then start the stack:
-
-```bash
+# Start everything
 sudo docker compose up -d
 ```
 
+That's it. No config files to edit.
+
 ## Step 3: Open the Dashboard
 
-Open `http://YOUR_SERVER_IP:3000` in your browser. Log in with the password you set during setup.
+Open `http://YOUR_SERVER_IP:3000` in your browser.
 
-The dashboard lets you:
-- **Stats** — see feeds, posts sent, errors, uptime
-- **Feeds** — add/remove monitored feeds
-- **Setup** — guided wizard with instructions for each config value
-- **Config** — edit any setting manually
+The first time you visit, you'll see the **Setup wizard**. Fill in:
 
-No Discord commands needed. Everything is in the web UI.
+1. **Discord Token** — from Step 1 above
+2. **Discord Client ID** — from Step 1 above
+3. **Feed Channel** — right-click a channel → Copy Channel ID
+4. **Admin Channel** — right-click an admin channel → Copy Channel ID
+5. **Admin Role** — right-click a role → Copy Role ID (or leave empty)
+6. **Instagram Username** — the account to monitor
+7. **Instagram Password** — 2FA must be OFF, use a burner account
+8. **YouTube API Key** — instructions shown in the wizard
+9. **RSSHub URL** — leave empty for default
+10. **Dashboard Password** — protects the web UI (leave empty for no password)
 
-## Step 4: Expose RSSHub to the Internet
+Click **Save & Connect**. The bot connects to Discord and starts working.
+
+After initial setup, use the **Config** tab to change any setting. **Feeds** tab to add/remove feeds. **Stats** tab to see activity.
+
+## Expose RSSHub to the Internet
 
 RSSHub runs inside Docker and needs to be accessible from the internet so your bot can fetch social media feeds.
 
-### 4a: Nginx Proxy Manager
+### Nginx Proxy Manager
 
 1. Open Nginx Proxy Manager (usually at http://YOUR_SERVER_IP:81)
 2. Click **Add Proxy Host**
@@ -86,7 +89,7 @@ RSSHub runs inside Docker and needs to be accessible from the internet so your b
 4. Click **SSL** tab → select **Let's Encrypt** → check **Force SSL** → **Save**
 5. Click **Save**
 
-### 4b: Cloudflare DNS
+### Cloudflare DNS
 
 1. Log in to Cloudflare → select your domain
 2. Go to **DNS** → **Records** → **Add Record**
@@ -97,48 +100,21 @@ RSSHub runs inside Docker and needs to be accessible from the internet so your b
    - **Proxy Status:** Proxied (orange cloud) ✅
 4. Click **Save**
 
-### 4c: Test It
+### Test It
 
 Open your browser and go to: `https://rsshub.yourdomain.com`
 
 You should see the RSSHub welcome page. If you do, it's working.
 
-If your RSSHub URL is different from the default (`http://rsshub:1200`), update it:
-
-```
-!config set RSSHUB_BASE_URL https://rsshub.yourdomain.com
-```
-
-## Step 5: Add Your First Feed
-
-```
-!addfeed /tiktok/user/username
-```
-
-Replace `username` with the actual TikTok username. The `/` prefix auto-adds your RSSHub URL.
-
-Other examples:
-
-```
-!addfeed /tiktok/user/username
-!addfeed /instagram/user/natgeo
-!addfeed /twitch/live/shroud
-!addfeed https://www.youtube.com/feeds/videos.xml?channel_id=UC_x5XG1OV2P6uZZ5FSM9Ttw
-```
-
-To see your feeds:
-
-```
-!feeds
-```
+Then in the dashboard, set **RSSHUB_BASE_URL** to `https://rsshub.yourdomain.com` under Config.
 
 ## Auto-Updates
 
-Watchtower is included in the stack. It polls GHCR every 5 minutes and auto-restarts the bot when a new image is pushed. Push code → GitHub Actions builds → Watchtower deploys. Zero manual steps.
+Watchtower is included in the stack. It polls GHCR every 5 minutes and auto-restarts the bot when a new image is pushed. Push code → GitHub Actions builds → Watchtower deploys.
 
 ## All Commands
 
-Discord commands still work but the dashboard (`http://YOUR_SERVER_IP:3000`) is easier for config and feed management.
+Discord commands still work but the dashboard is easier for config and feed management.
 
 | Command | Who Can Use It | What It Does |
 |---------|---------------|--------------|
@@ -155,22 +131,6 @@ Discord commands still work but the dashboard (`http://YOUR_SERVER_IP:3000`) is 
 | `!removefeed <#>` | Admins only | Removes feed by number |
 | `!config show` | Admins only | Shows current config |
 | `!config set <KEY> <value>` | Admins only | Sets a config value |
-| `!setup` | Admins only | First-time config wizard |
-
-## Config Keys
-
-Set these in the dashboard under **Setup** or **Config**:
-
-| Key | What It Does |
-|-----|-------------|
-| `DISCORD_CHANNEL_ID` | Channel where posts appear |
-| `ADMIN_CHANNEL_ID` | Channel for tickets |
-| `ADMIN_ROLE_ID` | Role that can manage feeds (empty = everyone) |
-| `IG_USERNAME` | Instagram username to monitor |
-| `IG_PASSWORD` | Instagram password (2FA must be off) |
-| `YOUTUBE_KEY` | YouTube Data API v3 key |
-| `RSSHUB_BASE_URL` | RSSHub URL (default: `http://rsshub:1200`) |
-| `CHECK_INTERVAL` | Minutes between checks (default: 15) |
 
 ## Troubleshooting
 

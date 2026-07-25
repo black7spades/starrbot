@@ -6,21 +6,20 @@
 <title>Mkitty Dashboard</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#1a1a2e;--card:#16213e;--accent:#5865f2;--green:#57f287;--red:#ed4245;--yellow:#fee75c;--text:#dcddde;--muted:#72767d;--input:#2f3136;--border:#202225}
+:root{--bg:#1a1a2e;--card:#16213e;--accent:#5865f2;--green:#57f287;--red:#ed4245;--text:#dcddde;--muted:#72767d;--input:#2f3136;--border:#202225}
 body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 a{color:var(--accent);text-decoration:none}
 .container{max-width:900px;margin:0 auto;padding:20px}
 h1{font-size:1.5rem;margin-bottom:20px}
 h2{font-size:1.1rem;margin-bottom:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
 
-/* Login */
-#login{display:flex;align-items:center;justify-content:center;min-height:100vh}
+/* Login overlay */
+#login-overlay{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100}
 .login-box{background:var(--card);padding:40px;border-radius:12px;text-align:center;width:360px}
 .login-box input{width:100%;padding:12px;border:1px solid var(--border);border-radius:6px;background:var(--input);color:var(--text);font-size:1rem;margin:12px 0}
 .login-box h1{margin-bottom:4px}
 
-/* Dashboard */
-#dashboard{display:none}
+/* Nav */
 .nav{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
 .nav button{padding:8px 16px;border:none;border-radius:6px;background:var(--card);color:var(--muted);cursor:pointer;font-size:.9rem}
 .nav button.active{background:var(--accent);color:#fff}
@@ -36,7 +35,7 @@ h2{font-size:1.1rem;margin-bottom:12px;color:var(--muted);text-transform:upperca
 
 /* Forms */
 .form-row{display:flex;gap:8px;margin-bottom:12px}
-.form-row input,.form-row select{flex:1;padding:10px;border:1px solid var(--border);border-radius:6px;background:var(--input);color:var(--text);font-size:.95rem}
+.form-row input{flex:1;padding:10px;border:1px solid var(--border);border-radius:6px;background:var(--input);color:var(--text);font-size:.95rem}
 .btn{padding:10px 20px;border:none;border-radius:6px;cursor:pointer;font-size:.95rem;font-weight:600}
 .btn-primary{background:var(--accent);color:#fff}
 .btn-danger{background:var(--red);color:#fff}
@@ -56,8 +55,7 @@ h2{font-size:1.1rem;margin-bottom:12px;color:var(--muted);text-transform:upperca
 .config-row input{flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--input);color:var(--text);font-size:.9rem}
 .config-row .hint{font-size:.75rem;color:var(--muted);margin-top:4px}
 
-/* Setup wizard */
-.setup-steps{counter-reset:step}
+/* Setup */
 .setup-step{padding:16px;background:var(--bg);border-radius:8px;margin-bottom:12px;border-left:3px solid var(--border)}
 .setup-step.done{border-left-color:var(--green)}
 .setup-step.current{border-left-color:var(--accent)}
@@ -72,14 +70,13 @@ h2{font-size:1.1rem;margin-bottom:12px;color:var(--muted);text-transform:upperca
 .toast.error{background:var(--red)}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
-/* Responsive */
 @media(max-width:600px){.config-row{flex-direction:column;align-items:stretch}.config-row label{min-width:0}}
 </style>
 </head>
 <body>
 
-<!-- Login -->
-<div id="login">
+<!-- Login overlay (only shown if password is set) -->
+<div id="login-overlay" style="display:none">
   <div class="login-box">
     <h1>Mkitty</h1>
     <p style="color:var(--muted);margin-bottom:16px">Dashboard</p>
@@ -89,18 +86,32 @@ h2{font-size:1.1rem;margin-bottom:12px;color:var(--muted);text-transform:upperca
   </div>
 </div>
 
-<!-- Dashboard -->
-<div id="dashboard" class="container">
+<div class="container">
   <h1>Mkitty Dashboard</h1>
-  <div class="nav">
-    <button class="active" onclick="showTab('stats')">Stats</button>
+  <div class="nav" id="main-nav">
+    <button class="active" onclick="showTab('setup')">Setup</button>
+    <button onclick="showTab('stats')">Stats</button>
     <button onclick="showTab('feeds')">Feeds</button>
-    <button onclick="showTab('setup')">Setup</button>
     <button onclick="showTab('config')">Config</button>
   </div>
 
+  <!-- Setup Wizard -->
+  <div id="tab-setup" class="section active">
+    <div class="card">
+      <h2>Setup</h2>
+      <p style="font-size:.9rem;color:var(--muted);margin-bottom:16px" id="setup-intro">
+        Fill in each value below. The bot connects to Discord once you save the token.
+      </p>
+      <div id="setup-steps"></div>
+      <div style="margin-top:16px">
+        <button class="btn btn-primary" onclick="runSetup()">Save & Connect</button>
+      </div>
+      <p id="setup-status" style="margin-top:12px;font-size:.85rem;color:var(--green)"></p>
+    </div>
+  </div>
+
   <!-- Stats -->
-  <div id="tab-stats" class="section active">
+  <div id="tab-stats" class="section">
     <div class="stats" id="stats-grid"></div>
   </div>
 
@@ -117,19 +128,6 @@ h2{font-size:1.1rem;margin-bottom:12px;color:var(--muted);text-transform:upperca
     <div class="card">
       <h2>Monitored Feeds</h2>
       <div id="feed-list"></div>
-    </div>
-  </div>
-
-  <!-- Setup Wizard -->
-  <div id="tab-setup" class="section">
-    <div class="card">
-      <h2>Setup Wizard</h2>
-      <p style="font-size:.9rem;color:var(--muted);margin-bottom:16px">Fill in each value. Leave blank and click Skip to skip optional fields. RSSHub restarts automatically when done.</p>
-      <div id="setup-steps"></div>
-      <div style="margin-top:16px;display:flex;gap:8px">
-        <button class="btn btn-primary" onclick="runSetup()">Save All & Restart RSSHub</button>
-        <button class="btn" style="background:var(--border);color:var(--text)" onclick="showTab('config')">Skip to Manual Config</button>
-      </div>
     </div>
   </div>
 
@@ -150,6 +148,8 @@ h2{font-size:1.1rem;margin-bottom:12px;color:var(--muted);text-transform:upperca
 let pw = '';
 const SENSITIVE = ['IG_PASSWORD','DISCORD_TOKEN','YOUTUBE_KEY','ADMIN_PASSWORD'];
 const HINTS = {
+  DISCORD_TOKEN: 'From https://discord.com/developers/applications → Bot → Reset Token',
+  DISCORD_CLIENT_ID: 'From https://discord.com/developers/applications → General Information → Application ID',
   DISCORD_CHANNEL_ID: 'Right-click channel in Discord → Copy Channel ID (enable Developer Mode in Settings → Advanced)',
   ADMIN_CHANNEL_ID: 'Right-click admin-only channel → Copy Channel ID',
   ADMIN_ROLE_ID: 'Right-click role in Server Settings → Copy Role ID. Leave empty = everyone is admin.',
@@ -158,8 +158,9 @@ const HINTS = {
   YOUTUBE_KEY: 'Google Cloud Console → APIs & Services → Library → Enable YouTube Data API v3 → Credentials → Create API Key',
   RSSHUB_BASE_URL: 'Your RSSHub URL. Leave empty for default (http://rsshub:1200)',
   CHECK_INTERVAL: 'Minutes between feed checks (default: 15)',
+  ADMIN_PASSWORD: 'Password to access this dashboard. Leave empty for no password.',
 };
-const SETUP_ORDER = ['DISCORD_CHANNEL_ID','ADMIN_CHANNEL_ID','ADMIN_ROLE_ID','IG_USERNAME','IG_PASSWORD','YOUTUBE_KEY','RSSHUB_BASE_URL'];
+const SETUP_ORDER = ['DISCORD_TOKEN','DISCORD_CLIENT_ID','DISCORD_CHANNEL_ID','ADMIN_CHANNEL_ID','ADMIN_ROLE_ID','IG_USERNAME','IG_PASSWORD','YOUTUBE_KEY','RSSHUB_BASE_URL','ADMIN_PASSWORD'];
 
 async function api(url, method, body) {
   const opts = { method, headers: { 'Content-Type': 'application/json', 'X-Admin-Password': pw } };
@@ -181,14 +182,13 @@ function toast(msg, type='success') {
 function doLogin() {
   pw = document.getElementById('password').value;
   api('/api/stats', 'GET').then(() => {
-    document.getElementById('login').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('login-overlay').style.display = 'none';
     loadAll();
   }).catch(e => {
     document.getElementById('login-error').textContent = e.message || 'Wrong password';
   });
 }
-document.getElementById('password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('password')?.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
 function showTab(name) {
   document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
@@ -198,21 +198,22 @@ function showTab(name) {
   if (name === 'stats') loadStats();
   if (name === 'feeds') loadFeeds();
   if (name === 'config') loadConfig();
-  if (name === 'setup') loadSetup();
 }
 
-async function loadAll() { loadStats(); }
+async function loadAll() { loadStats(); loadFeeds(); }
 
 async function loadStats() {
-  const s = await api('/api/stats', 'GET');
-  document.getElementById('stats-grid').innerHTML = `
-    <div class="stat"><div class="num">${s.feeds}</div><div class="label">Feeds</div></div>
-    <div class="stat"><div class="num">${s.postsSent}</div><div class="label">Posts Sent</div></div>
-    <div class="stat"><div class="num">${s.errors}</div><div class="label">Errors</div></div>
-    <div class="stat"><div class="num">${s.lastCheck ? timeSince(s.lastCheck) : 'Never'}</div><div class="label">Last Check</div></div>
-    <div class="stat"><div class="num">${s.botUser}</div><div class="label">Bot</div></div>
-    <div class="stat"><div class="num">${Math.floor(s.uptime / 3600)}h ${Math.floor((s.uptime % 3600) / 60)}m</div><div class="label">Uptime</div></div>
-  `;
+  try {
+    const s = await api('/api/stats', 'GET');
+    document.getElementById('stats-grid').innerHTML = `
+      <div class="stat"><div class="num">${s.feeds}</div><div class="label">Feeds</div></div>
+      <div class="stat"><div class="num">${s.postsSent}</div><div class="label">Posts Sent</div></div>
+      <div class="stat"><div class="num">${s.errors}</div><div class="label">Errors</div></div>
+      <div class="stat"><div class="num">${s.lastCheck ? timeSince(s.lastCheck) : 'Never'}</div><div class="label">Last Check</div></div>
+      <div class="stat"><div class="num">${s.botUser}</div><div class="label">Bot</div></div>
+      <div class="stat"><div class="num">${Math.floor(s.uptime / 3600)}h ${Math.floor((s.uptime % 3600) / 60)}m</div><div class="label">Uptime</div></div>
+    `;
+  } catch {}
 }
 
 function timeSince(d) {
@@ -223,60 +224,56 @@ function timeSince(d) {
 }
 
 async function loadFeeds() {
-  const feeds = await api('/api/feeds', 'GET');
-  const el = document.getElementById('feed-list');
-  if (!feeds.length) { el.innerHTML = '<p style="color:var(--muted)">No feeds yet. Add one above.</p>'; return; }
-  el.innerHTML = feeds.map(f => `
-    <div class="feed-item">
-      <div class="platform">${f.platform.icon}</div>
-      <div class="url">${f.url}<br><small>${f.platform.name}</small></div>
-      <button class="btn btn-danger btn-sm" onclick="removeFeed(${f.index})">Remove</button>
-    </div>
-  `).join('');
+  try {
+    const feeds = await api('/api/feeds', 'GET');
+    const el = document.getElementById('feed-list');
+    if (!feeds.length) { el.innerHTML = '<p style="color:var(--muted)">No feeds yet. Add one above.</p>'; return; }
+    el.innerHTML = feeds.map(f => `
+      <div class="feed-item">
+        <div class="platform">${f.platform.icon}</div>
+        <div class="url">${f.url}<br><small>${f.platform.name}</small></div>
+        <button class="btn btn-danger btn-sm" onclick="removeFeed(${f.index})">Remove</button>
+      </div>
+    `).join('');
+  } catch {}
 }
 
 async function addFeed() {
   const input = document.getElementById('feed-url');
   const url = input.value.trim();
   if (!url) return;
-  try {
-    await api('/api/feeds', 'POST', { url });
-    input.value = '';
-    toast('Feed added');
-    loadFeeds();
-  } catch (e) { toast(e.message, 'error'); }
+  try { await api('/api/feeds', 'POST', { url }); input.value = ''; toast('Feed added'); loadFeeds(); }
+  catch (e) { toast(e.message, 'error'); }
 }
 
 async function removeFeed(idx) {
-  try {
-    await api(`/api/feeds/${idx}`, 'DELETE');
-    toast('Feed removed');
-    loadFeeds();
-  } catch (e) { toast(e.message, 'error'); }
+  try { await api(`/api/feeds/${idx}`, 'DELETE'); toast('Feed removed'); loadFeeds(); }
+  catch (e) { toast(e.message, 'error'); }
 }
 
-let configData = {};
 async function loadConfig() {
-  configData = await api('/api/config', 'GET');
-  const grid = document.getElementById('config-grid');
-  const allKeys = [...new Set([...SETUP_ORDER, ...Object.keys(configData)])];
-  grid.innerHTML = allKeys.map(k => `
-    <div class="config-row">
-      <label>${k}</label>
-      <div>
-        <input type="${SENSITIVE.includes(k) ? 'password' : 'text'}" id="cfg-${k}" value="${configData[k] || ''}" placeholder="${k}">
-        ${HINTS[k] ? `<div class="hint">${HINTS[k]}</div>` : ''}
+  try {
+    const data = await api('/api/config', 'GET');
+    const grid = document.getElementById('config-grid');
+    const allKeys = [...new Set([...SETUP_ORDER, ...Object.keys(data)])];
+    grid.innerHTML = allKeys.map(k => `
+      <div class="config-row">
+        <label>${k.replace(/_/g, ' ')}</label>
+        <div>
+          <input type="${SENSITIVE.includes(k) ? 'password' : 'text'}" id="cfg-${k}" value="${data[k] || ''}" placeholder="${k}">
+          ${HINTS[k] ? `<div class="hint">${HINTS[k]}</div>` : ''}
+        </div>
       </div>
-    </div>
-  `).join('');
+    `).join('');
+  } catch {}
 }
 
 async function saveConfig() {
-  const allKeys = [...new Set([...SETUP_ORDER, ...Object.keys(configData)])];
+  const allKeys = [...new Set([...SETUP_ORDER, ...Object.keys(await api('/api/config', 'GET'))])];
   const body = {};
   for (const k of allKeys) {
-    const v = document.getElementById(`cfg-${k}`).value;
-    if (v) body[k] = v;
+    const v = document.getElementById(`cfg-${k}`)?.value;
+    if (v !== undefined && v !== '') body[k] = v;
   }
   try {
     const r = await api('/api/config', 'POST', body);
@@ -285,14 +282,14 @@ async function saveConfig() {
   } catch (e) { toast(e.message, 'error'); }
 }
 
-function loadSetup() {
+function buildSetup() {
   const el = document.getElementById('setup-steps');
   el.innerHTML = SETUP_ORDER.map((k, i) => `
     <div class="setup-step" id="step-${i}">
       <div class="step-num">Step ${i + 1} of ${SETUP_ORDER.length}</div>
       <div class="step-title">${k.replace(/_/g, ' ')}</div>
       <div class="step-desc">${HINTS[k] || ''}</div>
-      <input type="${SENSITIVE.includes(k) ? 'password' : 'text'}" id="setup-${k}" placeholder="Enter value or leave blank to skip">
+      <input type="${SENSITIVE.includes(k) ? 'password' : 'text'}" id="setup-${k}" placeholder="${k === 'RSSHUB_BASE_URL' ? 'Leave empty for default' : 'Enter value'}">
     </div>
   `).join('');
 }
@@ -303,19 +300,44 @@ async function runSetup() {
     const v = document.getElementById(`setup-${k}`).value.trim();
     if (v) body[k] = v;
   }
+  if (!body.DISCORD_TOKEN) { toast('Discord Token is required', 'error'); return; }
   try {
     const r = await api('/api/config', 'POST', body);
     document.querySelectorAll('.setup-step').forEach(s => s.classList.add('done'));
+    document.getElementById('setup-status').textContent = r.rsshubRestarted ? 'Saved. Bot connected. RSSHub restarted.' : 'Saved. Bot connecting to Discord...';
     toast(r.rsshubRestarted ? 'Setup complete. RSSHub restarted.' : 'Setup complete.');
   } catch (e) { toast(e.message, 'error'); }
 }
 
 async function restartRsshub() {
-  try {
-    await api('/api/restart-rsshub', 'POST');
-    toast('RSSHub restarted');
-  } catch (e) { toast(e.message, 'error'); }
+  try { await api('/api/restart-rsshub', 'POST'); toast('RSSHub restarted'); }
+  catch (e) { toast(e.message, 'error'); }
 }
+
+// ── Init ──────────────────────────────────────────────────────────────────
+(async () => {
+  const status = await api('/api/status', 'GET');
+  if (!status.configured) {
+    // First visit — show setup wizard directly
+    document.getElementById('login-overlay').style.display = 'none';
+    buildSetup();
+    return;
+  }
+  // Check if password is required
+  try {
+    await api('/api/stats', 'GET');
+    // No password needed
+    buildSetup();
+    loadAll();
+  } catch (e) {
+    if (e.message === 'Wrong password') {
+      document.getElementById('login-overlay').style.display = 'flex';
+      buildSetup();
+    } else {
+      buildSetup();
+    }
+  }
+})();
 </script>
 </body>
 </html>
